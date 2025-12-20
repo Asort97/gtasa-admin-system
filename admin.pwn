@@ -1005,6 +1005,12 @@ stock cmd_admin(playerid, const params[])
         SendClientMessage(playerid, -1, "/unmute [ID] - размутить игрока");
     }
 
+    if (AdminData[playerid][AdminLevel] >= ADMIN_LEVEL_3)
+    {
+        SendClientMessage(playerid, -1, "/fly - включить/выключить полёт");
+        SendClientMessage(playerid, -1, "/veh [ID] - заспавнить транспорт");
+    }
+
     if (AdminData[playerid][AdminLevel] >= ADMIN_LEVEL_4)
     {
         SendClientMessage(playerid, -1, "/ban [ID] [дни] [причина] - забанить игрока");
@@ -1026,7 +1032,7 @@ stock cmd_admin(playerid, const params[])
 // /veh ID - spawn vehicle
 stock cmd_veh(playerid, const params[])
 {
-    if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
+    if (!HasAdminLevel(playerid, ADMIN_LEVEL_3))
     {
         SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
         return 1;
@@ -1081,7 +1087,7 @@ stock cmd_fly(playerid, const params[])
 {
     #pragma unused params
     
-    if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
+    if (!HasAdminLevel(playerid, ADMIN_LEVEL_3))
     {
         SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
         return 1;
