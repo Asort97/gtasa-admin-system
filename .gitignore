@@ -1,0 +1,41 @@
+# Compiled binaries
+*.amx
+
+# Logs
+*.log
+admin_log.txt
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Compiler files
+pawnc-*/
+qawno/
+*.exe
+*.bat
+
+# Node modules (if using tools)
+node_modules/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Keep important files
+!start_server.bat
+!COMPILE_GUIDE.txt
+!*.pwn
+!*.inc
+!*.json
+!*.cfg
+!*.txt
+!*.md
