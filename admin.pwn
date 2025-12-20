@@ -1055,15 +1055,22 @@ stock cmd_veh(playerid, const params[])
     GetPlayerPos(playerid, x, y, z);
     GetPlayerFacingAngle(playerid, a);
 
-    new veh = CreateVehicle(vehicleid, x, y, z + 2.0, a, -1, -1, -1);
+    // Spawn the vehicle in front of the player (not inside the player).
+    new Float:spawn_dist = 5.0;
+    new Float:spawn_x = x + floatsin(a, degrees) * spawn_dist;
+    new Float:spawn_y = y + floatcos(a, degrees) * spawn_dist;
+
+    // Face the player ("напротив игрока").
+    new Float:veh_a = a + 180.0;
+    if (veh_a >= 360.0) veh_a -= 360.0;
+
+    new veh = CreateVehicle(vehicleid, spawn_x, spawn_y, z + 1.0, veh_a, -1, -1, -1);
     
     if (veh == INVALID_VEHICLE_ID)
     {
         SendClientMessage(playerid, -1, "[ОШИБКА] Не удалось создать транспорт.");
         return 1;
     }
-
-    PutPlayerInVehicle(playerid, veh, 0);
 
     new admin_name[MAX_PLAYER_NAME];
     GetPlayerName(playerid, admin_name, sizeof admin_name);
@@ -1081,6 +1088,8 @@ stock cmd_veh(playerid, const params[])
 
 // Fly mode toggle
 new bool:gPlayerFlying[MAX_PLAYERS];
+new bool:gFlyCamObjectCreated[MAX_PLAYERS];
+new gFlyCamObject[MAX_PLAYERS];
 
 // /fly - flight mode
 stock cmd_fly(playerid, const params[])
@@ -1100,8 +1109,26 @@ stock cmd_fly(playerid, const params[])
 
     if (gPlayerFlying[playerid])
     {
+        new Float:x, Float:y, Float:z;
+        GetPlayerPos(playerid, x, y, z);
 
-        SendClientMessage(playerid, 0x00FF00FF, "Режим полёта: ВКЛ. Управление: W/S/A/D/Shift/C.");
+        if (!gFlyCamObjectCreated[playerid])
+        {
+            // Attach the camera to a player-object so the player can rotate it with the mouse.
+            gFlyCamObject[playerid] = CreatePlayerObject(playerid, 19300, x, y, z + 0.7, 0.0, 0.0, 0.0, 0.0);
+            if (gFlyCamObject[playerid] == INVALID_OBJECT_ID)
+            {
+                gPlayerFlying[playerid] = false;
+                SendClientMessage(playerid, -1, "[ОШИБКА] Не удалось создать объект камеры для /fly.");
+                return 1;
+            }
+            gFlyCamObjectCreated[playerid] = true;
+        }
+
+        SetPlayerObjectPos(playerid, gFlyCamObject[playerid], x, y, z + 0.7);
+        AttachCameraToPlayerObject(playerid, gFlyCamObject[playerid]);
+
+        SendClientMessage(playerid, 0x00FF00FF, "Режим полёта: ВКЛ. Управление: W/S/A/D/Shift/C. Для быстрого отклика направления удерживай ПКМ (прицел).");
         // LogAdminAction(admin_name, AdminData[playerid][AdminLevel], "Включён режим полёта");
 
         new log_text[256];
@@ -1111,6 +1138,14 @@ stock cmd_fly(playerid, const params[])
     else
     {
         SendClientMessage(playerid, 0x00FF00FF, "Режим полёта: ВЫКЛ.");
+        SetCameraBehindPlayer(playerid);
+
+        if (gFlyCamObjectCreated[playerid])
+        {
+            DestroyPlayerObject(playerid, gFlyCamObject[playerid]);
+            gFlyCamObjectCreated[playerid] = false;
+        }
+
         LogAdminAction(admin_name, AdminData[playerid][AdminLevel], "Выключен режим полёта");
 
         new log_text[256];
@@ -1134,42 +1169,73 @@ public OnPlayerUpdate(playerid)
         new Float:x, Float:y, Float:z;
         GetPlayerPos(playerid, x, y, z);
 
-        // Move relative to camera direction
-        new Float:fx, Float:fy, Float:fz;
-        GetPlayerCameraFrontVector(playerid, fx, fy, fz);
+        // Noclip-like movement relative to camera direction (full 3D, incl. pitch).
+        new Float:aim_fx, Float:aim_fy, Float:aim_fz;
+        GetPlayerCameraFrontVector(playerid, aim_fx, aim_fy, aim_fz);
 
-        // Normalize horizontal forward vector
-        new Float:len2d = floatsqroot(fx * fx + fy * fy);
-        if (len2d > 0.0001)
+        // Forward (camera direction, normalized).
+        new Float:forward_x = aim_fx;
+        new Float:forward_y = aim_fy;
+        new Float:forward_z = aim_fz;
+        new Float:forward_len = floatsqroot(forward_x * forward_x + forward_y * forward_y + forward_z * forward_z);
+        if (forward_len < 0.0001)
         {
-            fx /= len2d;
-            fy /= len2d;
+            forward_x = 0.0;
+            forward_y = 1.0;
+            forward_z = 0.0;
+            forward_len = 1.0;
         }
-        else
-        {
-            fx = 0.0; fy = 1.0;
-        }
+        forward_x /= forward_len;
+        forward_y /= forward_len;
+        forward_z /= forward_len;
 
-        // Right vector (perpendicular on XY plane) - adjusted so D=right, A=left
-        new Float:rx =  fy;
-        new Float:ry = -fx;
+        // Right = normalize(Up x Forward), Up = (0,0,1).
+        new Float:right_x = -forward_y;
+        new Float:right_y =  forward_x;
+        new Float:right_z =  0.0;
+        new Float:right_len = floatsqroot(right_x * right_x + right_y * right_y);
+        if (right_len < 0.0001)
+        {
+            right_x = 1.0;
+            right_y = 0.0;
+            right_z = 0.0;
+            right_len = 1.0;
+        }
+        right_x /= right_len;
+        right_y /= right_len;
+
+        // UpCam = Forward x Right (keeps vertical movement aligned with camera pitch).
+        new Float:up_x = forward_y * right_z - forward_z * right_y;
+        new Float:up_y = forward_z * right_x - forward_x * right_z;
+        new Float:up_z = forward_x * right_y - forward_y * right_x;
+        new Float:up_len = floatsqroot(up_x * up_x + up_y * up_y + up_z * up_z);
+        if (up_len < 0.0001) up_len = 1.0;
+        up_x /= up_len;
+        up_y /= up_len;
+        up_z /= up_len;
 
         new Float:speed = 2.0;
         if (keys & KEY_SPRINT) speed = 5.0;
 
-        // Forward/backward (W/S) - SA:MP ud < 0 is forward (W)
-        if (ud < 0) { x += fx * speed; y += fy * speed; }
-        else if (ud > 0) { x -= fx * speed; y -= fy * speed; }
+        // Forward/backward (W/S) - move along camera forward (includes pitch).
+        if (ud < 0) { x += forward_x * speed; y += forward_y * speed; z += forward_z * speed; }
+        else if (ud > 0) { x -= forward_x * speed; y -= forward_y * speed; z -= forward_z * speed; }
 
-        // Strafe (A/D)
-        if (lr > 0) { x += rx * speed; y += ry * speed; }
-        else if (lr < 0) { x -= rx * speed; y -= ry * speed; }
+        // Strafe (A/D) - relative to camera yaw (A=left, D=right).
+        if (lr > 0) { x -= right_x * speed; y -= right_y * speed; }
+        else if (lr < 0) { x += right_x * speed; y += right_y * speed; }
 
-        // Vertical (Space/C)
-        if (keys & KEY_JUMP) z += speed;
-        if (keys & KEY_CROUCH) z -= speed;
+        // Vertical (Space/C) - relative to camera (UpCam).
+        if (keys & KEY_JUMP) { x += up_x * speed; y += up_y * speed; z += up_z * speed; }
+        if (keys & KEY_CROUCH) { x -= up_x * speed; y -= up_y * speed; z -= up_z * speed; }
 
         SetPlayerPos(playerid, x, y, z);
+        SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
+
+        if (gFlyCamObjectCreated[playerid])
+        {
+            SetPlayerObjectPos(playerid, gFlyCamObject[playerid], x, y, z + 0.7);
+        }
     }
 
     return 1;
