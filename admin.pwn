@@ -474,6 +474,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
     if (!strcmp(cmd, "unban", true)) return cmd_unban(playerid, params);
     if (!strcmp(cmd, "a", true)) return cmd_a(playerid, params);
     if (!strcmp(cmd, "admin", true)) return cmd_admin(playerid, params);
+    if (!strcmp(cmd, "veh", true)) return cmd_veh(playerid, params);
+    if (!strcmp(cmd, "авто", true)) return cmd_veh(playerid, params);
+    if (!strcmp(cmd, "fly", true)) return cmd_fly(playerid, params);
+    if (!strcmp(cmd, "полет", true)) return cmd_fly(playerid, params);
 
     return 0;
 }
@@ -938,6 +942,156 @@ stock cmd_admin(playerid, const params[])
     if (AdminData[playerid][AdminLevel] >= ADMIN_LEVEL_OWNER)
     {
         SendClientMessage(playerid, -1, "/setadmin [ID] [уровень] - установить админ-уровень");
+    }
+
+    return 1;
+}
+
+// ==========================================
+// TEST COMMANDS
+// ==========================================
+
+// /veh ID - spawn vehicle
+stock cmd_veh(playerid, const params[])
+{
+    if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
+    {
+        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        return 1;
+    }
+
+    new vehicleid;
+    if (sscanf(params, "i", vehicleid) != 0)
+    {
+        SendClientMessage(playerid, -1, "Использование: /veh [ID транспорта 400-611]");
+        return 1;
+    }
+
+    if (vehicleid < 400 || vehicleid > 611)
+    {
+        SendClientMessage(playerid, -1, "[ОШИБКА] ID транспорта должен быть 400-611.");
+        return 1;
+    }
+
+    new Float:x, Float:y, Float:z, Float:a;
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, a);
+
+    new veh = CreateVehicle(vehicleid, x, y, z + 2.0, a, -1, -1, -1);
+    
+    if (veh == INVALID_VEHICLE_ID)
+    {
+        SendClientMessage(playerid, -1, "[ОШИБКА] Не удалось создать транспорт.");
+        return 1;
+    }
+
+    PutPlayerInVehicle(playerid, veh, 0);
+
+    new admin_name[MAX_PLAYER_NAME];
+    GetPlayerName(playerid, admin_name, sizeof admin_name);
+
+    new message[128];
+    format(message, sizeof message, "Транспорт создан: ID %d", vehicleid);
+    SendClientMessage(playerid, 0x00FF00FF, message);
+
+    new log_text[256];
+    format(log_text, sizeof log_text, "Спавн транспорта: %d", vehicleid);
+    LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
+
+    return 1;
+}
+
+// Fly mode toggle
+new bool:gPlayerFlying[MAX_PLAYERS];
+
+// /fly - flight mode
+stock cmd_fly(playerid, const params[])
+{
+    #pragma unused params
+    
+    if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
+    {
+        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        return 1;
+    }
+
+    gPlayerFlying[playerid] = !gPlayerFlying[playerid];
+
+    new admin_name[MAX_PLAYER_NAME];
+    GetPlayerName(playerid, admin_name, sizeof admin_name);
+
+    if (gPlayerFlying[playerid])
+    {
+
+        SendClientMessage(playerid, 0x00FF00FF, "Режим полёта: ВКЛ. Управление: W/S/A/D/Shift/C.");
+        // LogAdminAction(admin_name, AdminData[playerid][AdminLevel], "Включён режим полёта");
+
+        new log_text[256];
+        format(log_text, sizeof log_text, "Включён режим полёта");
+        LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
+    }
+    else
+    {
+        SendClientMessage(playerid, 0x00FF00FF, "Режим полёта: ВЫКЛ.");
+        LogAdminAction(admin_name, AdminData[playerid][AdminLevel], "Выключен режим полёта");
+
+        new log_text[256];
+        format(log_text, sizeof log_text, "Выключен режим полёта");
+        LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
+    }
+
+    return 1;
+}
+
+// (giveitem command removed: inventory system not implemented yet)
+
+// Fly mode handler
+public OnPlayerUpdate(playerid)
+{
+    if (gPlayerFlying[playerid])
+    {
+        new KEY:keys, ud, lr;
+        GetPlayerKeys(playerid, keys, ud, lr);
+
+        new Float:x, Float:y, Float:z;
+        GetPlayerPos(playerid, x, y, z);
+
+        // Move relative to camera direction
+        new Float:fx, Float:fy, Float:fz;
+        GetPlayerCameraFrontVector(playerid, fx, fy, fz);
+
+        // Normalize horizontal forward vector
+        new Float:len2d = floatsqroot(fx * fx + fy * fy);
+        if (len2d > 0.0001)
+        {
+            fx /= len2d;
+            fy /= len2d;
+        }
+        else
+        {
+            fx = 0.0; fy = 1.0;
+        }
+
+        // Right vector (perpendicular on XY plane) - adjusted so D=right, A=left
+        new Float:rx =  fy;
+        new Float:ry = -fx;
+
+        new Float:speed = 2.0;
+        if (keys & KEY_SPRINT) speed = 5.0;
+
+        // Forward/backward (W/S) - SA:MP ud < 0 is forward (W)
+        if (ud < 0) { x += fx * speed; y += fy * speed; }
+        else if (ud > 0) { x -= fx * speed; y -= fy * speed; }
+
+        // Strafe (A/D)
+        if (lr > 0) { x += rx * speed; y += ry * speed; }
+        else if (lr < 0) { x -= rx * speed; y -= ry * speed; }
+
+        // Vertical (Space/C)
+        if (keys & KEY_JUMP) z += speed;
+        if (keys & KEY_CROUCH) z -= speed;
+
+        SetPlayerPos(playerid, x, y, z);
     }
 
     return 1;
