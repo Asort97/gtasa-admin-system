@@ -9,6 +9,7 @@
 // ---- DEFINE'ы
 #define ADMIN_LOG_FILE          "admin_log.txt"
 #define ADMIN_MUTE_REASON_SIZE  64
+#define ADMIN_LOG_TMP_FILE      "admin_log.tmp"
 
 // ”ровни администраторов
 #define ADMIN_LEVEL_NONE        0
@@ -59,29 +60,100 @@ stock WriteRawString(File:f, const s[])
     }
 }
 
+stock bool:AdminLogLineEndsWithNewline(const s[])
+{
+    new len = strlen(s);
+    if (!len) return false;
+
+    new c = s[len - 1];
+    return (c == '\n' || c == '\r');
+}
+
+stock StripUtf8BomPrefix(s[])
+{
+    if (!s[0] || !s[1] || !s[2]) return;
+
+    if (((s[0] & 0xFF) == 0xEF) && ((s[1] & 0xFF) == 0xBB) && ((s[2] & 0xFF) == 0xBF))
+    {
+        new i = 0;
+        while (s[i + 3])
+        {
+            s[i] = s[i + 3];
+            i++;
+        }
+        s[i] = '\0';
+    }
+}
+
 stock AdminLogInit()
 {
     if (gLogInited) return;
 
-    new File:f = fopen(ADMIN_LOG_FILE, io_append);
-    if (!f) f = fopen(ADMIN_LOG_FILE, io_write);
-
-    if (f)
+    // Ensure the log is UTF-8 with BOM (for Windows Notepad).
+    // If an old log exists without BOM (ANSI/CP1251), convert it once.
+    if (!fexist(ADMIN_LOG_FILE))
     {
-        // ѕишем BOM только если файл новый/пустой (чтобы Ѕлокнот понимал UTF-8)
-        if (ftell(f) == 0)
+        new File:w = fopen(ADMIN_LOG_FILE, io_write);
+        if (w)
         {
-            new bom[3];
-            bom[0] = 0xEF;
-            bom[1] = 0xBB;
-            bom[2] = 0xBF;
-            WriteRawBytes(f, bom, 3);
+            new bom[3] = { 0xEF, 0xBB, 0xBF };
+            WriteRawBytes(w, bom, 3);
+            fclose(w);
         }
-        fclose(f);
+        gLogInited = true;
+        return;
     }
+
+    new File:r = fopen(ADMIN_LOG_FILE, io_read);
+    if (!r)
+    {
+        gLogInited = true;
+        return;
+    }
+
+    new b1 = fgetchar(r, false);
+    new b2 = fgetchar(r, false);
+    new b3 = fgetchar(r, false);
+
+    if (((b1 & 0xFF) == 0xEF) && ((b2 & 0xFF) == 0xBB) && ((b3 & 0xFF) == 0xBF))
+    {
+        fclose(r);
+        gLogInited = true;
+        return;
+    }
+
+    fseek(r, 0, seek_start);
+
+    new File:w = fopen(ADMIN_LOG_TMP_FILE, io_write);
+    if (!w)
+    {
+        fclose(r);
+        gLogInited = true;
+        return;
+    }
+
+    new bom[3] = { 0xEF, 0xBB, 0xBF };
+    WriteRawBytes(w, bom, 3);
+
+    new line[700];
+    new out[1000];
+
+    while (fread(r, line, sizeof line))
+    {
+        StripUtf8BomPrefix(line);
+        NormalizeToUtf8(line, out, sizeof out);
+        WriteRawString(w, out);
+        if (!AdminLogLineEndsWithNewline(out)) WriteRawString(w, "\r\n");
+    }
+
+    fclose(r);
+    fclose(w);
+
+    fremove(ADMIN_LOG_FILE);
+    frename(ADMIN_LOG_TMP_FILE, ADMIN_LOG_FILE);
+
     gLogInited = true;
 }
-
 // 1) ѕризнак У?Е?ЕФ в UTF-8 (double-encoded UTF-8 bytes as Latin-1)
 stock bool:LooksLikeMojibake(const s[])
 {
@@ -91,7 +163,7 @@ stock bool:LooksLikeMojibake(const s[])
         new b = s[i + 1] & 0xFF;
 
         if (a == 0xC3 && (b == 0x90 || b == 0x91)) return true; // ? / ?
-        if (a == 0xC2) return true; // часто р€дом с ? (C2 A0 и т.п.)
+        if (a == 0xC2 && (b >= 0x80 && b <= 0xBF)) return true;
     }
     return false;
 }

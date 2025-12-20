@@ -3566,3 +3566,570 @@ Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
 [2025-12-20T20:28:05+0300] [Info] 
 [2025-12-20T20:28:05+0300] [Info]  ===============================
 [2025-12-20T20:28:05+0300] [Info] 
+Starting open.mp server (1.5.8.3079) from commit c6759bd8d265171ae3d86598895a23d5a8d92a3b
+Loading component $CAPI.dll
+	Successfully loaded component C-API (1.5.8.3079) with UID 10467dd8d4c56fc6
+Loading component Actors.dll
+	Successfully loaded component Actors (1.5.8.3079) with UID c81ca021eae2ad5c
+Loading component Checkpoints.dll
+	Successfully loaded component Checkpoints (1.5.8.3079) with UID 44a937350d611dde
+Loading component Classes.dll
+	Successfully loaded component Classes (1.5.8.3079) with UID 8cfb3183976da208
+Loading component Console.dll
+	Successfully loaded component Console (1.5.8.3079) with UID bfa24e49d0c95ee4
+Loading component CustomModels.dll
+	Successfully loaded component CustomModels (1.5.8.3079) with UID 15e3cb1e7c77ffff
+Loading component Databases.dll
+	Successfully loaded component Databases (1.5.8.3079) with UID 80092e7eb5821a96
+Loading component Dialogs.dll
+	Successfully loaded component Dialogs (1.5.8.3079) with UID 44a111350d611dde
+Loading component GangZones.dll
+	Successfully loaded component GangZones (1.5.8.3079) with UID b3351d11ee8d8056
+Loading component LegacyConfig.dll
+	Successfully loaded component LegacyConfig (1.5.8.3079) with UID 24ef6216838f9ffc
+Loading component LegacyNetwork.dll
+	Successfully loaded component RakNetLegacyNetwork (1.5.8.3079) with UID ea9799fd79cf8442
+Loading component Menus.dll
+	Successfully loaded component Menus (1.5.8.3079) with UID 621e219eb97ee0b2
+Loading component NPCs.dll
+	Successfully loaded component NPCs (1.5.8.3079) with UID 3d0e59e87f4e90bc
+Loading component Objects.dll
+	Successfully loaded component Objects (1.5.8.3079) with UID 59f8415f72da6160
+Loading component Pawn.dll
+	Successfully loaded component Pawn (1.5.8.3079) with UID 78906cd9f19c36a6
+Loading component Pickups.dll
+	Successfully loaded component Pickups (1.5.8.3079) with UID cf304faa363dd971
+Loading component Recordings.dll
+	Successfully loaded component Recordings (1.5.8.3079) with UID 871144d399f5f613
+Loading component sscanf.dll
+	Successfully loaded component sscanf (2.13.8.0) with UID a1e7c01e55caa1f2
+Loading component TextDraws.dll
+	Successfully loaded component TextDraws (1.5.8.3079) with UID 9b5dc2b1d15c992a
+Loading component TextLabels.dll
+	Successfully loaded component TextLabels (1.5.8.3079) with UID a0c57ea80a009742
+Loading component Timers.dll
+	Successfully loaded component Timers (1.5.8.3079) with UID 2ad8124c5ea257a3
+Loading component Variables.dll
+	Successfully loaded component Variables (1.5.8.3079) with UID 75e121848bc01fa2
+Loading component Vehicles.dll
+	Successfully loaded component Vehicles (1.5.8.3079) with UID 3f1f62ee9e22ab19
+Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
+[2025-12-20T20:28:33+0300] [Info] 
+[2025-12-20T20:28:33+0300] [Info]  ===============================
+[2025-12-20T20:28:33+0300] [Info] 
+[2025-12-20T20:28:33+0300] [Info]      sscanf component loaded.   
+[2025-12-20T20:28:33+0300] [Info] 
+[2025-12-20T20:28:33+0300] [Info]          Version: 2.13.8
+[2025-12-20T20:28:33+0300] [Info] 
+[2025-12-20T20:28:33+0300] [Info]    (c) 2022 Alex "Y_Less" Cole  
+[2025-12-20T20:28:33+0300] [Info] 
+[2025-12-20T20:28:33+0300] [Info]  ===============================
+[2025-12-20T20:28:33+0300] [Info] 
+[2025-12-20T20:28:33+0300] [Info] [DB] OK: database opened
+[2025-12-20T20:28:33+0300] [Info] Legacy Network started on port 7777
+[2025-12-20T20:29:17+0300] [Info] [connection] incoming connection: 127.0.0.1:56327 id: 0
+[2025-12-20T20:29:17+0300] [Info] [join] asort has joined the server (0:127.0.0.1)
+[2025-12-20T20:30:10+0300] [Info] sscanf warning (`(null)`): "Include / plugin mismatch, please recompile your script for the latest features."
+[2025-12-20T20:33:54+0300] [Info] [DB] Closed
+[2025-12-20T20:33:54+0300] [Info] 
+[2025-12-20T20:33:54+0300] [Info]  ===============================
+[2025-12-20T20:33:54+0300] [Info] 
+[2025-12-20T20:33:54+0300] [Info]     sscanf component unloaded.  
+[2025-12-20T20:33:54+0300] [Info] 
+[2025-12-20T20:33:54+0300] [Info]  ===============================
+[2025-12-20T20:33:54+0300] [Info] 
+Starting open.mp server (1.5.8.3079) from commit c6759bd8d265171ae3d86598895a23d5a8d92a3b
+Loading component $CAPI.dll
+	Successfully loaded component C-API (1.5.8.3079) with UID 10467dd8d4c56fc6
+Loading component Actors.dll
+	Successfully loaded component Actors (1.5.8.3079) with UID c81ca021eae2ad5c
+Loading component Checkpoints.dll
+	Successfully loaded component Checkpoints (1.5.8.3079) with UID 44a937350d611dde
+Loading component Classes.dll
+	Successfully loaded component Classes (1.5.8.3079) with UID 8cfb3183976da208
+Loading component Console.dll
+	Successfully loaded component Console (1.5.8.3079) with UID bfa24e49d0c95ee4
+Loading component CustomModels.dll
+	Successfully loaded component CustomModels (1.5.8.3079) with UID 15e3cb1e7c77ffff
+Loading component Databases.dll
+	Successfully loaded component Databases (1.5.8.3079) with UID 80092e7eb5821a96
+Loading component Dialogs.dll
+	Successfully loaded component Dialogs (1.5.8.3079) with UID 44a111350d611dde
+Loading component GangZones.dll
+	Successfully loaded component GangZones (1.5.8.3079) with UID b3351d11ee8d8056
+Loading component LegacyConfig.dll
+	Successfully loaded component LegacyConfig (1.5.8.3079) with UID 24ef6216838f9ffc
+Loading component LegacyNetwork.dll
+	Successfully loaded component RakNetLegacyNetwork (1.5.8.3079) with UID ea9799fd79cf8442
+Loading component Menus.dll
+	Successfully loaded component Menus (1.5.8.3079) with UID 621e219eb97ee0b2
+Loading component NPCs.dll
+	Successfully loaded component NPCs (1.5.8.3079) with UID 3d0e59e87f4e90bc
+Loading component Objects.dll
+	Successfully loaded component Objects (1.5.8.3079) with UID 59f8415f72da6160
+Loading component Pawn.dll
+	Successfully loaded component Pawn (1.5.8.3079) with UID 78906cd9f19c36a6
+Loading component Pickups.dll
+	Successfully loaded component Pickups (1.5.8.3079) with UID cf304faa363dd971
+Loading component Recordings.dll
+	Successfully loaded component Recordings (1.5.8.3079) with UID 871144d399f5f613
+Loading component sscanf.dll
+	Successfully loaded component sscanf (2.13.8.0) with UID a1e7c01e55caa1f2
+Loading component TextDraws.dll
+	Successfully loaded component TextDraws (1.5.8.3079) with UID 9b5dc2b1d15c992a
+Loading component TextLabels.dll
+	Successfully loaded component TextLabels (1.5.8.3079) with UID a0c57ea80a009742
+Loading component Timers.dll
+	Successfully loaded component Timers (1.5.8.3079) with UID 2ad8124c5ea257a3
+Loading component Variables.dll
+	Successfully loaded component Variables (1.5.8.3079) with UID 75e121848bc01fa2
+Loading component Vehicles.dll
+	Successfully loaded component Vehicles (1.5.8.3079) with UID 3f1f62ee9e22ab19
+Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
+[2025-12-20T20:46:23+0300] [Info] 
+[2025-12-20T20:46:23+0300] [Info]  ===============================
+[2025-12-20T20:46:23+0300] [Info] 
+[2025-12-20T20:46:23+0300] [Info]      sscanf component loaded.   
+[2025-12-20T20:46:23+0300] [Info] 
+[2025-12-20T20:46:23+0300] [Info]          Version: 2.13.8
+[2025-12-20T20:46:23+0300] [Info] 
+[2025-12-20T20:46:23+0300] [Info]    (c) 2022 Alex "Y_Less" Cole  
+[2025-12-20T20:46:23+0300] [Info] 
+[2025-12-20T20:46:23+0300] [Info]  ===============================
+[2025-12-20T20:46:23+0300] [Info] 
+[2025-12-20T20:46:23+0300] [Info] [DB] OK: database opened
+[2025-12-20T20:46:23+0300] [Info] Legacy Network started on port 7777
+[2025-12-20T20:46:45+0300] [Info] [connection] incoming connection: 127.0.0.1:65517 id: 0
+[2025-12-20T20:46:45+0300] [Info] [join] asort has joined the server (0:127.0.0.1)
+[2025-12-20T20:47:06+0300] [Info] sscanf warning (`(null)`): "Include / plugin mismatch, please recompile your script for the latest features."
+[2025-12-20T20:47:58+0300] [Info] [DB] Closed
+[2025-12-20T20:47:58+0300] [Info] 
+[2025-12-20T20:47:58+0300] [Info]  ===============================
+[2025-12-20T20:47:58+0300] [Info] 
+[2025-12-20T20:47:58+0300] [Info]     sscanf component unloaded.  
+[2025-12-20T20:47:58+0300] [Info] 
+[2025-12-20T20:47:58+0300] [Info]  ===============================
+[2025-12-20T20:47:58+0300] [Info] 
+Starting open.mp server (1.5.8.3079) from commit c6759bd8d265171ae3d86598895a23d5a8d92a3b
+Loading component $CAPI.dll
+	Successfully loaded component C-API (1.5.8.3079) with UID 10467dd8d4c56fc6
+Loading component Actors.dll
+	Successfully loaded component Actors (1.5.8.3079) with UID c81ca021eae2ad5c
+Loading component Checkpoints.dll
+	Successfully loaded component Checkpoints (1.5.8.3079) with UID 44a937350d611dde
+Loading component Classes.dll
+	Successfully loaded component Classes (1.5.8.3079) with UID 8cfb3183976da208
+Loading component Console.dll
+	Successfully loaded component Console (1.5.8.3079) with UID bfa24e49d0c95ee4
+Loading component CustomModels.dll
+	Successfully loaded component CustomModels (1.5.8.3079) with UID 15e3cb1e7c77ffff
+Loading component Databases.dll
+	Successfully loaded component Databases (1.5.8.3079) with UID 80092e7eb5821a96
+Loading component Dialogs.dll
+	Successfully loaded component Dialogs (1.5.8.3079) with UID 44a111350d611dde
+Loading component GangZones.dll
+	Successfully loaded component GangZones (1.5.8.3079) with UID b3351d11ee8d8056
+Loading component LegacyConfig.dll
+	Successfully loaded component LegacyConfig (1.5.8.3079) with UID 24ef6216838f9ffc
+Loading component LegacyNetwork.dll
+	Successfully loaded component RakNetLegacyNetwork (1.5.8.3079) with UID ea9799fd79cf8442
+Loading component Menus.dll
+	Successfully loaded component Menus (1.5.8.3079) with UID 621e219eb97ee0b2
+Loading component NPCs.dll
+	Successfully loaded component NPCs (1.5.8.3079) with UID 3d0e59e87f4e90bc
+Loading component Objects.dll
+	Successfully loaded component Objects (1.5.8.3079) with UID 59f8415f72da6160
+Loading component Pawn.dll
+	Successfully loaded component Pawn (1.5.8.3079) with UID 78906cd9f19c36a6
+Loading component Pickups.dll
+	Successfully loaded component Pickups (1.5.8.3079) with UID cf304faa363dd971
+Loading component Recordings.dll
+	Successfully loaded component Recordings (1.5.8.3079) with UID 871144d399f5f613
+Loading component sscanf.dll
+	Successfully loaded component sscanf (2.13.8.0) with UID a1e7c01e55caa1f2
+Loading component TextDraws.dll
+	Successfully loaded component TextDraws (1.5.8.3079) with UID 9b5dc2b1d15c992a
+Loading component TextLabels.dll
+	Successfully loaded component TextLabels (1.5.8.3079) with UID a0c57ea80a009742
+Loading component Timers.dll
+	Successfully loaded component Timers (1.5.8.3079) with UID 2ad8124c5ea257a3
+Loading component Variables.dll
+	Successfully loaded component Variables (1.5.8.3079) with UID 75e121848bc01fa2
+Loading component Vehicles.dll
+	Successfully loaded component Vehicles (1.5.8.3079) with UID 3f1f62ee9e22ab19
+Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
+[2025-12-20T20:57:06+0300] [Info] 
+[2025-12-20T20:57:06+0300] [Info]  ===============================
+[2025-12-20T20:57:06+0300] [Info] 
+[2025-12-20T20:57:06+0300] [Info]      sscanf component loaded.   
+[2025-12-20T20:57:06+0300] [Info] 
+[2025-12-20T20:57:06+0300] [Info]          Version: 2.13.8
+[2025-12-20T20:57:06+0300] [Info] 
+[2025-12-20T20:57:06+0300] [Info]    (c) 2022 Alex "Y_Less" Cole  
+[2025-12-20T20:57:06+0300] [Info] 
+[2025-12-20T20:57:06+0300] [Info]  ===============================
+[2025-12-20T20:57:06+0300] [Info] 
+[2025-12-20T20:57:06+0300] [Info] [DB] OK: database opened
+[2025-12-20T20:57:06+0300] [Info] Legacy Network started on port 7777
+[2025-12-20T20:57:31+0300] [Info] [connection] incoming connection: 127.0.0.1:52757 id: 0
+[2025-12-20T20:57:31+0300] [Info] [join] asort has joined the server (0:127.0.0.1)
+[2025-12-20T20:58:01+0300] [Info] [part] asort has left the server (0:2)
+[2025-12-20T20:58:37+0300] [Info] [connection] incoming connection: 127.0.0.1:52068 id: 0
+[2025-12-20T20:58:37+0300] [Info] [join] asort has joined the server (0:127.0.0.1)
+[2025-12-20T20:59:17+0300] [Info] [DB] Closed
+[2025-12-20T20:59:17+0300] [Info] 
+[2025-12-20T20:59:17+0300] [Info]  ===============================
+[2025-12-20T20:59:17+0300] [Info] 
+[2025-12-20T20:59:17+0300] [Info]     sscanf component unloaded.  
+[2025-12-20T20:59:17+0300] [Info] 
+[2025-12-20T20:59:17+0300] [Info]  ===============================
+[2025-12-20T20:59:17+0300] [Info] 
+Starting open.mp server (1.5.8.3079) from commit c6759bd8d265171ae3d86598895a23d5a8d92a3b
+Loading component $CAPI.dll
+	Successfully loaded component C-API (1.5.8.3079) with UID 10467dd8d4c56fc6
+Loading component Actors.dll
+	Successfully loaded component Actors (1.5.8.3079) with UID c81ca021eae2ad5c
+Loading component Checkpoints.dll
+	Successfully loaded component Checkpoints (1.5.8.3079) with UID 44a937350d611dde
+Loading component Classes.dll
+	Successfully loaded component Classes (1.5.8.3079) with UID 8cfb3183976da208
+Loading component Console.dll
+	Successfully loaded component Console (1.5.8.3079) with UID bfa24e49d0c95ee4
+Loading component CustomModels.dll
+	Successfully loaded component CustomModels (1.5.8.3079) with UID 15e3cb1e7c77ffff
+Loading component Databases.dll
+	Successfully loaded component Databases (1.5.8.3079) with UID 80092e7eb5821a96
+Loading component Dialogs.dll
+	Successfully loaded component Dialogs (1.5.8.3079) with UID 44a111350d611dde
+Loading component GangZones.dll
+	Successfully loaded component GangZones (1.5.8.3079) with UID b3351d11ee8d8056
+Loading component LegacyConfig.dll
+	Successfully loaded component LegacyConfig (1.5.8.3079) with UID 24ef6216838f9ffc
+Loading component LegacyNetwork.dll
+	Successfully loaded component RakNetLegacyNetwork (1.5.8.3079) with UID ea9799fd79cf8442
+Loading component Menus.dll
+	Successfully loaded component Menus (1.5.8.3079) with UID 621e219eb97ee0b2
+Loading component NPCs.dll
+	Successfully loaded component NPCs (1.5.8.3079) with UID 3d0e59e87f4e90bc
+Loading component Objects.dll
+	Successfully loaded component Objects (1.5.8.3079) with UID 59f8415f72da6160
+Loading component Pawn.dll
+	Successfully loaded component Pawn (1.5.8.3079) with UID 78906cd9f19c36a6
+Loading component Pickups.dll
+	Successfully loaded component Pickups (1.5.8.3079) with UID cf304faa363dd971
+Loading component Recordings.dll
+	Successfully loaded component Recordings (1.5.8.3079) with UID 871144d399f5f613
+Loading component sscanf.dll
+	Successfully loaded component sscanf (2.13.8.0) with UID a1e7c01e55caa1f2
+Loading component TextDraws.dll
+	Successfully loaded component TextDraws (1.5.8.3079) with UID 9b5dc2b1d15c992a
+Loading component TextLabels.dll
+	Successfully loaded component TextLabels (1.5.8.3079) with UID a0c57ea80a009742
+Loading component Timers.dll
+	Successfully loaded component Timers (1.5.8.3079) with UID 2ad8124c5ea257a3
+Loading component Variables.dll
+	Successfully loaded component Variables (1.5.8.3079) with UID 75e121848bc01fa2
+Loading component Vehicles.dll
+	Successfully loaded component Vehicles (1.5.8.3079) with UID 3f1f62ee9e22ab19
+Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
+[2025-12-20T21:03:01+0300] [Info] 
+[2025-12-20T21:03:01+0300] [Info]  ===============================
+[2025-12-20T21:03:01+0300] [Info] 
+[2025-12-20T21:03:01+0300] [Info]      sscanf component loaded.   
+[2025-12-20T21:03:01+0300] [Info] 
+[2025-12-20T21:03:01+0300] [Info]          Version: 2.13.8
+[2025-12-20T21:03:01+0300] [Info] 
+[2025-12-20T21:03:01+0300] [Info]    (c) 2022 Alex "Y_Less" Cole  
+[2025-12-20T21:03:01+0300] [Info] 
+[2025-12-20T21:03:01+0300] [Info]  ===============================
+[2025-12-20T21:03:01+0300] [Info] 
+[2025-12-20T21:03:01+0300] [Info] [DB] OK: database opened
+[2025-12-20T21:03:01+0300] [Info] Legacy Network started on port 7777
+[2025-12-20T21:04:07+0300] [Info] [DB] Closed
+[2025-12-20T21:04:07+0300] [Info] 
+[2025-12-20T21:04:07+0300] [Info]  ===============================
+[2025-12-20T21:04:07+0300] [Info] 
+[2025-12-20T21:04:07+0300] [Info]     sscanf component unloaded.  
+[2025-12-20T21:04:07+0300] [Info] 
+[2025-12-20T21:04:07+0300] [Info]  ===============================
+[2025-12-20T21:04:07+0300] [Info] 
+Starting open.mp server (1.5.8.3079) from commit c6759bd8d265171ae3d86598895a23d5a8d92a3b
+Loading component $CAPI.dll
+	Successfully loaded component C-API (1.5.8.3079) with UID 10467dd8d4c56fc6
+Loading component Actors.dll
+	Successfully loaded component Actors (1.5.8.3079) with UID c81ca021eae2ad5c
+Loading component Checkpoints.dll
+	Successfully loaded component Checkpoints (1.5.8.3079) with UID 44a937350d611dde
+Loading component Classes.dll
+	Successfully loaded component Classes (1.5.8.3079) with UID 8cfb3183976da208
+Loading component Console.dll
+	Successfully loaded component Console (1.5.8.3079) with UID bfa24e49d0c95ee4
+Loading component CustomModels.dll
+	Successfully loaded component CustomModels (1.5.8.3079) with UID 15e3cb1e7c77ffff
+Loading component Databases.dll
+	Successfully loaded component Databases (1.5.8.3079) with UID 80092e7eb5821a96
+Loading component Dialogs.dll
+	Successfully loaded component Dialogs (1.5.8.3079) with UID 44a111350d611dde
+Loading component GangZones.dll
+	Successfully loaded component GangZones (1.5.8.3079) with UID b3351d11ee8d8056
+Loading component LegacyConfig.dll
+	Successfully loaded component LegacyConfig (1.5.8.3079) with UID 24ef6216838f9ffc
+Loading component LegacyNetwork.dll
+	Successfully loaded component RakNetLegacyNetwork (1.5.8.3079) with UID ea9799fd79cf8442
+Loading component Menus.dll
+	Successfully loaded component Menus (1.5.8.3079) with UID 621e219eb97ee0b2
+Loading component NPCs.dll
+	Successfully loaded component NPCs (1.5.8.3079) with UID 3d0e59e87f4e90bc
+Loading component Objects.dll
+	Successfully loaded component Objects (1.5.8.3079) with UID 59f8415f72da6160
+Loading component Pawn.dll
+	Successfully loaded component Pawn (1.5.8.3079) with UID 78906cd9f19c36a6
+Loading component Pickups.dll
+	Successfully loaded component Pickups (1.5.8.3079) with UID cf304faa363dd971
+Loading component Recordings.dll
+	Successfully loaded component Recordings (1.5.8.3079) with UID 871144d399f5f613
+Loading component sscanf.dll
+	Successfully loaded component sscanf (2.13.8.0) with UID a1e7c01e55caa1f2
+Loading component TextDraws.dll
+	Successfully loaded component TextDraws (1.5.8.3079) with UID 9b5dc2b1d15c992a
+Loading component TextLabels.dll
+	Successfully loaded component TextLabels (1.5.8.3079) with UID a0c57ea80a009742
+Loading component Timers.dll
+	Successfully loaded component Timers (1.5.8.3079) with UID 2ad8124c5ea257a3
+Loading component Variables.dll
+	Successfully loaded component Variables (1.5.8.3079) with UID 75e121848bc01fa2
+Loading component Vehicles.dll
+	Successfully loaded component Vehicles (1.5.8.3079) with UID 3f1f62ee9e22ab19
+Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
+[2025-12-20T21:04:12+0300] [Info] 
+[2025-12-20T21:04:12+0300] [Info]  ===============================
+[2025-12-20T21:04:12+0300] [Info] 
+[2025-12-20T21:04:12+0300] [Info]      sscanf component loaded.   
+[2025-12-20T21:04:12+0300] [Info] 
+[2025-12-20T21:04:12+0300] [Info]          Version: 2.13.8
+[2025-12-20T21:04:12+0300] [Info] 
+[2025-12-20T21:04:12+0300] [Info]    (c) 2022 Alex "Y_Less" Cole  
+[2025-12-20T21:04:12+0300] [Info] 
+[2025-12-20T21:04:12+0300] [Info]  ===============================
+[2025-12-20T21:04:12+0300] [Info] 
+[2025-12-20T21:04:12+0300] [Info] [DB] OK: database opened
+[2025-12-20T21:04:12+0300] [Info] Legacy Network started on port 7777
+[2025-12-20T21:04:35+0300] [Info] [connection] incoming connection: 127.0.0.1:53123 id: 0
+[2025-12-20T21:04:35+0300] [Info] [join] asort has joined the server (0:127.0.0.1)
+[2025-12-20T21:12:47+0300] [Info] [DB] Closed
+[2025-12-20T21:12:47+0300] [Info] 
+[2025-12-20T21:12:47+0300] [Info]  ===============================
+[2025-12-20T21:12:47+0300] [Info] 
+[2025-12-20T21:12:47+0300] [Info]     sscanf component unloaded.  
+[2025-12-20T21:12:47+0300] [Info] 
+[2025-12-20T21:12:47+0300] [Info]  ===============================
+[2025-12-20T21:12:47+0300] [Info] 
+Starting open.mp server (1.5.8.3079) from commit c6759bd8d265171ae3d86598895a23d5a8d92a3b
+Loading component $CAPI.dll
+	Successfully loaded component C-API (1.5.8.3079) with UID 10467dd8d4c56fc6
+Loading component Actors.dll
+	Successfully loaded component Actors (1.5.8.3079) with UID c81ca021eae2ad5c
+Loading component Checkpoints.dll
+	Successfully loaded component Checkpoints (1.5.8.3079) with UID 44a937350d611dde
+Loading component Classes.dll
+	Successfully loaded component Classes (1.5.8.3079) with UID 8cfb3183976da208
+Loading component Console.dll
+	Successfully loaded component Console (1.5.8.3079) with UID bfa24e49d0c95ee4
+Loading component CustomModels.dll
+	Successfully loaded component CustomModels (1.5.8.3079) with UID 15e3cb1e7c77ffff
+Loading component Databases.dll
+	Successfully loaded component Databases (1.5.8.3079) with UID 80092e7eb5821a96
+Loading component Dialogs.dll
+	Successfully loaded component Dialogs (1.5.8.3079) with UID 44a111350d611dde
+Loading component GangZones.dll
+	Successfully loaded component GangZones (1.5.8.3079) with UID b3351d11ee8d8056
+Loading component LegacyConfig.dll
+	Successfully loaded component LegacyConfig (1.5.8.3079) with UID 24ef6216838f9ffc
+Loading component LegacyNetwork.dll
+	Successfully loaded component RakNetLegacyNetwork (1.5.8.3079) with UID ea9799fd79cf8442
+Loading component Menus.dll
+	Successfully loaded component Menus (1.5.8.3079) with UID 621e219eb97ee0b2
+Loading component NPCs.dll
+	Successfully loaded component NPCs (1.5.8.3079) with UID 3d0e59e87f4e90bc
+Loading component Objects.dll
+	Successfully loaded component Objects (1.5.8.3079) with UID 59f8415f72da6160
+Loading component Pawn.dll
+	Successfully loaded component Pawn (1.5.8.3079) with UID 78906cd9f19c36a6
+Loading component Pickups.dll
+	Successfully loaded component Pickups (1.5.8.3079) with UID cf304faa363dd971
+Loading component Recordings.dll
+	Successfully loaded component Recordings (1.5.8.3079) with UID 871144d399f5f613
+Loading component sscanf.dll
+	Successfully loaded component sscanf (2.13.8.0) with UID a1e7c01e55caa1f2
+Loading component TextDraws.dll
+	Successfully loaded component TextDraws (1.5.8.3079) with UID 9b5dc2b1d15c992a
+Loading component TextLabels.dll
+	Successfully loaded component TextLabels (1.5.8.3079) with UID a0c57ea80a009742
+Loading component Timers.dll
+	Successfully loaded component Timers (1.5.8.3079) with UID 2ad8124c5ea257a3
+Loading component Variables.dll
+	Successfully loaded component Variables (1.5.8.3079) with UID 75e121848bc01fa2
+Loading component Vehicles.dll
+	Successfully loaded component Vehicles (1.5.8.3079) with UID 3f1f62ee9e22ab19
+Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
+[2025-12-20T21:18:42+0300] [Info] 
+[2025-12-20T21:18:42+0300] [Info]  ===============================
+[2025-12-20T21:18:42+0300] [Info] 
+[2025-12-20T21:18:42+0300] [Info]      sscanf component loaded.   
+[2025-12-20T21:18:42+0300] [Info] 
+[2025-12-20T21:18:42+0300] [Info]          Version: 2.13.8
+[2025-12-20T21:18:42+0300] [Info] 
+[2025-12-20T21:18:42+0300] [Info]    (c) 2022 Alex "Y_Less" Cole  
+[2025-12-20T21:18:42+0300] [Info] 
+[2025-12-20T21:18:42+0300] [Info]  ===============================
+[2025-12-20T21:18:42+0300] [Info] 
+[2025-12-20T21:18:42+0300] [Info] [DB] OK: database opened
+[2025-12-20T21:18:42+0300] [Info] Legacy Network started on port 7777
+[2025-12-20T21:19:04+0300] [Info] [connection] incoming connection: 127.0.0.1:62942 id: 0
+[2025-12-20T21:19:04+0300] [Info] [join] asort has joined the server (0:127.0.0.1)
+[2025-12-20T21:20:14+0300] [Info] [DB] Closed
+[2025-12-20T21:20:14+0300] [Info] 
+[2025-12-20T21:20:14+0300] [Info]  ===============================
+[2025-12-20T21:20:14+0300] [Info] 
+[2025-12-20T21:20:14+0300] [Info]     sscanf component unloaded.  
+[2025-12-20T21:20:14+0300] [Info] 
+[2025-12-20T21:20:14+0300] [Info]  ===============================
+[2025-12-20T21:20:14+0300] [Info] 
+Starting open.mp server (1.5.8.3079) from commit c6759bd8d265171ae3d86598895a23d5a8d92a3b
+Loading component $CAPI.dll
+	Successfully loaded component C-API (1.5.8.3079) with UID 10467dd8d4c56fc6
+Loading component Actors.dll
+	Successfully loaded component Actors (1.5.8.3079) with UID c81ca021eae2ad5c
+Loading component Checkpoints.dll
+	Successfully loaded component Checkpoints (1.5.8.3079) with UID 44a937350d611dde
+Loading component Classes.dll
+	Successfully loaded component Classes (1.5.8.3079) with UID 8cfb3183976da208
+Loading component Console.dll
+	Successfully loaded component Console (1.5.8.3079) with UID bfa24e49d0c95ee4
+Loading component CustomModels.dll
+	Successfully loaded component CustomModels (1.5.8.3079) with UID 15e3cb1e7c77ffff
+Loading component Databases.dll
+	Successfully loaded component Databases (1.5.8.3079) with UID 80092e7eb5821a96
+Loading component Dialogs.dll
+	Successfully loaded component Dialogs (1.5.8.3079) with UID 44a111350d611dde
+Loading component GangZones.dll
+	Successfully loaded component GangZones (1.5.8.3079) with UID b3351d11ee8d8056
+Loading component LegacyConfig.dll
+	Successfully loaded component LegacyConfig (1.5.8.3079) with UID 24ef6216838f9ffc
+Loading component LegacyNetwork.dll
+	Successfully loaded component RakNetLegacyNetwork (1.5.8.3079) with UID ea9799fd79cf8442
+Loading component Menus.dll
+	Successfully loaded component Menus (1.5.8.3079) with UID 621e219eb97ee0b2
+Loading component NPCs.dll
+	Successfully loaded component NPCs (1.5.8.3079) with UID 3d0e59e87f4e90bc
+Loading component Objects.dll
+	Successfully loaded component Objects (1.5.8.3079) with UID 59f8415f72da6160
+Loading component Pawn.dll
+	Successfully loaded component Pawn (1.5.8.3079) with UID 78906cd9f19c36a6
+Loading component Pickups.dll
+	Successfully loaded component Pickups (1.5.8.3079) with UID cf304faa363dd971
+Loading component Recordings.dll
+	Successfully loaded component Recordings (1.5.8.3079) with UID 871144d399f5f613
+Loading component sscanf.dll
+	Successfully loaded component sscanf (2.13.8.0) with UID a1e7c01e55caa1f2
+Loading component TextDraws.dll
+	Successfully loaded component TextDraws (1.5.8.3079) with UID 9b5dc2b1d15c992a
+Loading component TextLabels.dll
+	Successfully loaded component TextLabels (1.5.8.3079) with UID a0c57ea80a009742
+Loading component Timers.dll
+	Successfully loaded component Timers (1.5.8.3079) with UID 2ad8124c5ea257a3
+Loading component Variables.dll
+	Successfully loaded component Variables (1.5.8.3079) with UID 75e121848bc01fa2
+Loading component Vehicles.dll
+	Successfully loaded component Vehicles (1.5.8.3079) with UID 3f1f62ee9e22ab19
+Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
+[2025-12-20T21:20:34+0300] [Info] 
+[2025-12-20T21:20:34+0300] [Info]  ===============================
+[2025-12-20T21:20:34+0300] [Info] 
+[2025-12-20T21:20:34+0300] [Info]      sscanf component loaded.   
+[2025-12-20T21:20:34+0300] [Info] 
+[2025-12-20T21:20:34+0300] [Info]          Version: 2.13.8
+[2025-12-20T21:20:34+0300] [Info] 
+[2025-12-20T21:20:34+0300] [Info]    (c) 2022 Alex "Y_Less" Cole  
+[2025-12-20T21:20:34+0300] [Info] 
+[2025-12-20T21:20:34+0300] [Info]  ===============================
+[2025-12-20T21:20:34+0300] [Info] 
+[2025-12-20T21:20:34+0300] [Info] [DB] OK: database opened
+[2025-12-20T21:20:34+0300] [Info] Legacy Network started on port 7777
+[2025-12-20T21:21:17+0300] [Info] [connection] incoming connection: 127.0.0.1:60182 id: 0
+[2025-12-20T21:21:17+0300] [Info] [join] asort has joined the server (0:127.0.0.1)
+[2025-12-20T21:21:55+0300] [Info] sscanf warning (`(null)`): "Include / plugin mismatch, please recompile your script for the latest features."
+[2025-12-20T21:35:08+0300] [Info] [DB] Closed
+[2025-12-20T21:35:08+0300] [Info] 
+[2025-12-20T21:35:08+0300] [Info]  ===============================
+[2025-12-20T21:35:08+0300] [Info] 
+[2025-12-20T21:35:08+0300] [Info]     sscanf component unloaded.  
+[2025-12-20T21:35:08+0300] [Info] 
+[2025-12-20T21:35:08+0300] [Info]  ===============================
+[2025-12-20T21:35:08+0300] [Info] 
+Starting open.mp server (1.5.8.3079) from commit c6759bd8d265171ae3d86598895a23d5a8d92a3b
+Loading component $CAPI.dll
+	Successfully loaded component C-API (1.5.8.3079) with UID 10467dd8d4c56fc6
+Loading component Actors.dll
+	Successfully loaded component Actors (1.5.8.3079) with UID c81ca021eae2ad5c
+Loading component Checkpoints.dll
+	Successfully loaded component Checkpoints (1.5.8.3079) with UID 44a937350d611dde
+Loading component Classes.dll
+	Successfully loaded component Classes (1.5.8.3079) with UID 8cfb3183976da208
+Loading component Console.dll
+	Successfully loaded component Console (1.5.8.3079) with UID bfa24e49d0c95ee4
+Loading component CustomModels.dll
+	Successfully loaded component CustomModels (1.5.8.3079) with UID 15e3cb1e7c77ffff
+Loading component Databases.dll
+	Successfully loaded component Databases (1.5.8.3079) with UID 80092e7eb5821a96
+Loading component Dialogs.dll
+	Successfully loaded component Dialogs (1.5.8.3079) with UID 44a111350d611dde
+Loading component GangZones.dll
+	Successfully loaded component GangZones (1.5.8.3079) with UID b3351d11ee8d8056
+Loading component LegacyConfig.dll
+	Successfully loaded component LegacyConfig (1.5.8.3079) with UID 24ef6216838f9ffc
+Loading component LegacyNetwork.dll
+	Successfully loaded component RakNetLegacyNetwork (1.5.8.3079) with UID ea9799fd79cf8442
+Loading component Menus.dll
+	Successfully loaded component Menus (1.5.8.3079) with UID 621e219eb97ee0b2
+Loading component NPCs.dll
+	Successfully loaded component NPCs (1.5.8.3079) with UID 3d0e59e87f4e90bc
+Loading component Objects.dll
+	Successfully loaded component Objects (1.5.8.3079) with UID 59f8415f72da6160
+Loading component Pawn.dll
+	Successfully loaded component Pawn (1.5.8.3079) with UID 78906cd9f19c36a6
+Loading component Pickups.dll
+	Successfully loaded component Pickups (1.5.8.3079) with UID cf304faa363dd971
+Loading component Recordings.dll
+	Successfully loaded component Recordings (1.5.8.3079) with UID 871144d399f5f613
+Loading component sscanf.dll
+	Successfully loaded component sscanf (2.13.8.0) with UID a1e7c01e55caa1f2
+Loading component TextDraws.dll
+	Successfully loaded component TextDraws (1.5.8.3079) with UID 9b5dc2b1d15c992a
+Loading component TextLabels.dll
+	Successfully loaded component TextLabels (1.5.8.3079) with UID a0c57ea80a009742
+Loading component Timers.dll
+	Successfully loaded component Timers (1.5.8.3079) with UID 2ad8124c5ea257a3
+Loading component Variables.dll
+	Successfully loaded component Variables (1.5.8.3079) with UID 75e121848bc01fa2
+Loading component Vehicles.dll
+	Successfully loaded component Vehicles (1.5.8.3079) with UID 3f1f62ee9e22ab19
+Loaded 23 component(s) from C:\UnityProjects\GtaSAadmin\components
+[2025-12-20T21:43:42+0300] [Info] 
+[2025-12-20T21:43:42+0300] [Info]  ===============================
+[2025-12-20T21:43:42+0300] [Info] 
+[2025-12-20T21:43:42+0300] [Info]      sscanf component loaded.   
+[2025-12-20T21:43:42+0300] [Info] 
+[2025-12-20T21:43:42+0300] [Info]          Version: 2.13.8
+[2025-12-20T21:43:42+0300] [Info] 
+[2025-12-20T21:43:42+0300] [Info]    (c) 2022 Alex "Y_Less" Cole  
+[2025-12-20T21:43:42+0300] [Info] 
+[2025-12-20T21:43:42+0300] [Info]  ===============================
+[2025-12-20T21:43:42+0300] [Info] 
+[2025-12-20T21:43:42+0300] [Info] [DB] OK: database opened
+[2025-12-20T21:43:42+0300] [Info] Legacy Network started on port 7777
+[2025-12-20T21:44:13+0300] [Info] [connection] incoming connection: 127.0.0.1:50429 id: 0
+[2025-12-20T21:44:13+0300] [Info] [join] asort has joined the server (0:127.0.0.1)
+[2025-12-20T21:45:10+0300] [Info] sscanf warning (`(null)`): "Include / plugin mismatch, please recompile your script for the latest features."
+[2025-12-20T21:46:00+0300] [Info] sscanf warning (`(null)`): "Include / plugin mismatch, please recompile your script for the latest features."
+[2025-12-20T21:46:09+0300] [Info] [part] asort has left the server (0:1)
