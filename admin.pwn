@@ -1,17 +1,17 @@
 // ==========================================
-// ADMIN SYSTEM для GTA SA сервера
-// Используется: open.mp + SQLite (omp_database)
+// ADMIN SYSTEM РґР»СЏ GTA SA СЃРµСЂРІРµСЂР°
+// РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ: open.mp + SQLite (omp_database)
 // ==========================================
 
 #include <open.mp>
 #include <sscanf2>
 
-// ---- DEFINE'ы
+// ---- DEFINE'С‹
 #define ADMIN_LOG_FILE          "admin_log.txt"
 #define ADMIN_MUTE_REASON_SIZE  64
 #define ADMIN_LOG_TMP_FILE      "admin_log.tmp"
 
-// Уровни администраторов
+// РЈСЂРѕРІРЅРё Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРІ
 #define ADMIN_LEVEL_NONE        0
 #define ADMIN_LEVEL_1           1
 #define ADMIN_LEVEL_2           2
@@ -19,7 +19,7 @@
 #define ADMIN_LEVEL_4           4
 #define ADMIN_LEVEL_OWNER       5
 
-// ---- Структура данных администратора
+// ---- РЎС‚СЂСѓРєС‚СѓСЂР° РґР°РЅРЅС‹С… Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°
 enum E_ADMIN_DATA
 {
     AdminLevel,
@@ -31,7 +31,7 @@ new AdminData[MAX_PLAYERS][E_ADMIN_DATA];
 
 new bool:gAdminLevelLoaded[MAX_PLAYERS];
 
-// ---- Структура для информации о бане
+// ---- РЎС‚СЂСѓРєС‚СѓСЂР° РґР»СЏ РёРЅС„РѕСЂРјР°С†РёРё Рѕ Р±Р°РЅРµ
 enum E_BAN_INFO
 {
     BanID,
@@ -154,7 +154,7 @@ stock AdminLogInit()
 
     gLogInited = true;
 }
-// 1) Признак “?…?…” в UTF-8 (double-encoded UTF-8 bytes as Latin-1)
+// 1) РџСЂРёР·РЅР°Рє вЂњ?вЂ¦?вЂ¦вЂќ РІ UTF-8 (double-encoded UTF-8 bytes as Latin-1)
 stock bool:LooksLikeMojibake(const s[])
 {
     for (new i = 0; s[i] && s[i + 1]; i++)
@@ -168,7 +168,7 @@ stock bool:LooksLikeMojibake(const s[])
     return false;
 }
 
-// 2) “Размотка” mojibake: UTF-8(Latin1(bytes)) -> bytes
+// 2) вЂњР Р°Р·РјРѕС‚РєР°вЂќ mojibake: UTF-8(Latin1(bytes)) -> bytes
 stock UnmangleUtf8FromLatin1(const src[], dest[], size)
 {
     new i = 0, j = 0;
@@ -197,7 +197,7 @@ stock UnmangleUtf8FromLatin1(const src[], dest[], size)
     dest[j] = '\0';
 }
 
-// 3) Признак, что строка уже похожа на UTF-8 кириллицу (D0/D1 xx)
+// 3) РџСЂРёР·РЅР°Рє, С‡С‚Рѕ СЃС‚СЂРѕРєР° СѓР¶Рµ РїРѕС…РѕР¶Р° РЅР° UTF-8 РєРёСЂРёР»Р»РёС†Сѓ (D0/D1 xx)
 stock bool:LooksLikeUtf8Cyr(const s[])
 {
     for (new i = 0; s[i] && s[i + 1]; i++)
@@ -210,7 +210,7 @@ stock bool:LooksLikeUtf8Cyr(const s[])
     return false;
 }
 
-// 4) Мини-конвертер CP1251 -> UTF-8 (кириллица + Ё/ё + №)
+// 4) РњРёРЅРё-РєРѕРЅРІРµСЂС‚РµСЂ CP1251 -> UTF-8 (РєРёСЂРёР»Р»РёС†Р° + РЃ/С‘ + в„–)
 stock Cp1251ToUtf8(const src[], dest[], size)
 {
     new i = 0, j = 0;
@@ -219,12 +219,12 @@ stock Cp1251ToUtf8(const src[], dest[], size)
         new c = src[i] & 0xFF;
 
         if (c < 0x80) { dest[j++] = c; }
-        else if (c == 0xA8) { dest[j++] = 0xD0; dest[j++] = 0x81; }          // Ё
-        else if (c == 0xB8) { dest[j++] = 0xD1; dest[j++] = 0x91; }          // ё
-        else if (c == 0xB9) { dest[j++] = 0xE2; dest[j++] = 0x84; dest[j++] = 0x96; } // №
-        else if (c >= 0xC0 && c <= 0xDF) { dest[j++] = 0xD0; dest[j++] = c - 0x30; } // А..Я
-        else if (c >= 0xE0 && c <= 0xEF) { dest[j++] = 0xD0; dest[j++] = c - 0x30; } // а..п
-        else if (c >= 0xF0 && c <= 0xFF) { dest[j++] = 0xD1; dest[j++] = c - 0x70; } // р..я
+        else if (c == 0xA8) { dest[j++] = 0xD0; dest[j++] = 0x81; }          // РЃ
+        else if (c == 0xB8) { dest[j++] = 0xD1; dest[j++] = 0x91; }          // С‘
+        else if (c == 0xB9) { dest[j++] = 0xE2; dest[j++] = 0x84; dest[j++] = 0x96; } // в„–
+        else if (c >= 0xC0 && c <= 0xDF) { dest[j++] = 0xD0; dest[j++] = c - 0x30; } // Рђ..РЇ
+        else if (c >= 0xE0 && c <= 0xEF) { dest[j++] = 0xD0; dest[j++] = c - 0x30; } // Р°..Рї
+        else if (c >= 0xF0 && c <= 0xFF) { dest[j++] = 0xD1; dest[j++] = c - 0x70; } // СЂ..СЏ
         else { dest[j++] = '?'; }
 
         i++;
@@ -237,7 +237,7 @@ stock NormalizeToUtf8(const src[], dest[], size)
 {
     if (LooksLikeMojibake(src))
     {
-        // после размотки получаем корректные UTF-8 байты
+        // РїРѕСЃР»Рµ СЂР°Р·РјРѕС‚РєРё РїРѕР»СѓС‡Р°РµРј РєРѕСЂСЂРµРєС‚РЅС‹Рµ UTF-8 Р±Р°Р№С‚С‹
         UnmangleUtf8FromLatin1(src, dest, size);
         return;
     }
@@ -248,7 +248,7 @@ stock NormalizeToUtf8(const src[], dest[], size)
         return;
     }
 
-    // иначе считаем что это CP1251
+    // РёРЅР°С‡Рµ СЃС‡РёС‚Р°РµРј С‡С‚Рѕ СЌС‚Рѕ CP1251
     Cp1251ToUtf8(src, dest, size);
 }
 
@@ -269,39 +269,42 @@ stock LogAdminAction(const admin[], adminlvl, const action[])
     if (f) { WriteRawString(f, out); fclose(f); }
 }
 
-// Проверка админ-уровня
+// РџСЂРѕРІРµСЂРєР° Р°РґРјРёРЅ-СѓСЂРѕРІРЅСЏ
 stock bool:HasAdminLevel(playerid, requiredlevel)
 {
     if (!IsPlayerConnected(playerid)) return false;
     return (AdminData[playerid][AdminLevel] >= requiredlevel);
 }
 
-// Название уровня администратора
+// РќР°Р·РІР°РЅРёРµ СѓСЂРѕРІРЅСЏ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°
 stock GetAdminLevelName(level, out[], size)
 {
     switch(level)
     {
-        case ADMIN_LEVEL_NONE: format(out, size, "Обычный игрок");
-        case ADMIN_LEVEL_1: format(out, size, "Администратор 1 уровня");
-        case ADMIN_LEVEL_2: format(out, size, "Администратор 2 уровня");
-        case ADMIN_LEVEL_3: format(out, size, "Администратор 3 уровня");
-        case ADMIN_LEVEL_4: format(out, size, "Администратор 4 уровня");
-        case ADMIN_LEVEL_OWNER: format(out, size, "Владелец сервера");
-        default: format(out, size, "Неизвестный уровень");
+        case ADMIN_LEVEL_NONE: format(out, size, "РћР±С‹С‡РЅС‹Р№ РёРіСЂРѕРє");
+        case ADMIN_LEVEL_1: format(out, size, "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ 1 СѓСЂРѕРІРЅСЏ");
+        case ADMIN_LEVEL_2: format(out, size, "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ 2 СѓСЂРѕРІРЅСЏ");
+        case ADMIN_LEVEL_3: format(out, size, "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ 3 СѓСЂРѕРІРЅСЏ");
+        case ADMIN_LEVEL_4: format(out, size, "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ 4 СѓСЂРѕРІРЅСЏ");
+        case ADMIN_LEVEL_OWNER: format(out, size, "Р’Р»Р°РґРµР»РµС† СЃРµСЂРІРµСЂР°");
+        default: format(out, size, "РќРµРёР·РІРµСЃС‚РЅС‹Р№ СѓСЂРѕРІРµРЅСЊ");
     }
 }
 
 // ==========================================
-// DATABASE - АДМИН УРОВНИ
+// DATABASE - РђР”РњРРќ РЈР РћР’РќР
 // ==========================================
 
-// Миграция базы данных (добавление поля admin)
+// РњРёРіСЂР°С†РёСЏ Р±Р°Р·С‹ РґР°РЅРЅС‹С… (РґРѕР±Р°РІР»РµРЅРёРµ РїРѕР»СЏ admin)
 stock AdminDB_Migrate()
 {
-    DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN admin INTEGER DEFAULT 0;");
+    if (!DB_ColumnExists("accounts", "admin"))
+    {
+        DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN admin INTEGER DEFAULT 0;");
+    }
 }
 
-// Загрузить админ-уровень игрока
+// Р—Р°РіСЂСѓР·РёС‚СЊ Р°РґРјРёРЅ-СѓСЂРѕРІРµРЅСЊ РёРіСЂРѕРєР°
 stock AdminDB_LoadLevel(playerid)
 {
     new name[MAX_PLAYER_NAME];
@@ -332,13 +335,13 @@ stock AdminDB_LoadLevel(playerid)
     return level;
 }
 
-// Сохранить админ-уровень игрока
+// РЎРѕС…СЂР°РЅРёС‚СЊ Р°РґРјРёРЅ-СѓСЂРѕРІРµРЅСЊ РёРіСЂРѕРєР°
 stock AdminDB_SaveLevel(playerid)
 {
     if (!IsPlayerConnected(playerid)) return 0;
 
-    // Если игрок вылетел/вышел до загрузки админ-уровня из БД,
-    // не перезаписываем значение в accounts.admin на 0.
+    // Р•СЃР»Рё РёРіСЂРѕРє РІС‹Р»РµС‚РµР»/РІС‹С€РµР» РґРѕ Р·Р°РіСЂСѓР·РєРё Р°РґРјРёРЅ-СѓСЂРѕРІРЅСЏ РёР· Р‘Р”,
+    // РЅРµ РїРµСЂРµР·Р°РїРёСЃС‹РІР°РµРј Р·РЅР°С‡РµРЅРёРµ РІ accounts.admin РЅР° 0.
     if (!gAdminLevelLoaded[playerid]) return 0;
 
     new name[MAX_PLAYER_NAME];
@@ -359,16 +362,16 @@ stock AdminDB_SaveLevel(playerid)
 }
 
 // ==========================================
-// DATABASE - БАН СИСТЕМА
+// DATABASE - Р‘РђРќ РЎРРЎРўР•РњРђ
 // ==========================================
 
-// Создание таблицы банов
+// РЎРѕР·РґР°РЅРёРµ С‚Р°Р±Р»РёС†С‹ Р±Р°РЅРѕРІ
 stock BanDB_CreateTable()
 {
     DB_ExecuteQuery(gDB, "CREATE TABLE IF NOT EXISTS bans (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, reason TEXT, bandate TEXT, expiredate TEXT, admin TEXT);");
 }
 
-// Добавить игрока в бан-лист
+// Р”РѕР±Р°РІРёС‚СЊ РёРіСЂРѕРєР° РІ Р±Р°РЅ-Р»РёСЃС‚
 stock BanDB_Add(const banname[], const reason[], days, const admin[])
 {
     new ename[MAX_PLAYER_NAME * 2 + 8];
@@ -381,8 +384,8 @@ stock BanDB_Add(const banname[], const reason[], days, const admin[])
 
     new bandate[32];
     new expiredate[32];
-    format(bandate, sizeof bandate, "2025-12-18");        // TODO: реальная дата
-    format(expiredate, sizeof expiredate, "2025-12-%02d", 18 + days);  // TODO: расчёт даты окончания
+    format(bandate, sizeof bandate, "2025-12-18");        // TODO: СЂРµР°Р»СЊРЅР°СЏ РґР°С‚Р°
+    format(expiredate, sizeof expiredate, "2025-12-%02d", 18 + days);  // TODO: СЂР°СЃС‡С‘С‚ РґР°С‚С‹ РѕРєРѕРЅС‡Р°РЅРёСЏ
 
     new q[512];
     format(q, sizeof q, "INSERT INTO bans (name, reason, bandate, expiredate, admin) VALUES('%s', '%s', '%s', '%s', '%s');", ename, ereason, bandate, expiredate, eadmin);
@@ -393,7 +396,7 @@ stock BanDB_Add(const banname[], const reason[], days, const admin[])
     return 1;
 }
 
-// Удалить игрока из бан-листа
+// РЈРґР°Р»РёС‚СЊ РёРіСЂРѕРєР° РёР· Р±Р°РЅ-Р»РёСЃС‚Р°
 stock BanDB_Remove(const banname[])
 {
     new ename[MAX_PLAYER_NAME * 2 + 8];
@@ -408,7 +411,7 @@ stock BanDB_Remove(const banname[])
     return 1;
 }
 
-// Проверить, забанен ли игрок
+// РџСЂРѕРІРµСЂРёС‚СЊ, Р·Р°Р±Р°РЅРµРЅ Р»Рё РёРіСЂРѕРє
 stock bool:BanDB_IsPlayerBanned(const name[], out_reason[], out_size)
 {
     new ename[MAX_PLAYER_NAME * 2 + 8];
@@ -431,7 +434,7 @@ stock bool:BanDB_IsPlayerBanned(const name[], out_reason[], out_size)
     return true;
 }
 
-// Количество банов (для отладочной панели)
+// РљРѕР»РёС‡РµСЃС‚РІРѕ Р±Р°РЅРѕРІ (РґР»СЏ РѕС‚Р»Р°РґРѕС‡РЅРѕР№ РїР°РЅРµР»Рё)
 stock BanDB_GetAll(out[], size)
 {
     new q[128];
@@ -447,7 +450,7 @@ stock BanDB_GetAll(out[], size)
 }
 
 // ==========================================
-// ВСТАВКИ В КОЛБЭКИ
+// Р’РЎРўРђР’РљР Р’ РљРћР›Р‘Р­РљР
 // ==========================================
 
 stock Admin_OnPlayerConnect(playerid)
@@ -475,21 +478,21 @@ stock Admin_OnPlayerDisconnect(playerid, reason)
 
 stock Admin_OnPlayerText(playerid, text[])
 {
-    // Проверка мута
+    // РџСЂРѕРІРµСЂРєР° РјСѓС‚Р°
     if (AdminData[playerid][IsMuted])
     {
         new mute_msg[128];
-        format(mute_msg, sizeof mute_msg, "[МУТ] Вам запрещено писать в чат. Причина: %s", AdminData[playerid][MuteReason]);
+        format(mute_msg, sizeof mute_msg, "[РњРЈРў] Р’Р°Рј Р·Р°РїСЂРµС‰РµРЅРѕ РїРёСЃР°С‚СЊ РІ С‡Р°С‚. РџСЂРёС‡РёРЅР°: %s", AdminData[playerid][MuteReason]);
         SendClientMessage(playerid, -1, mute_msg);
         return 0;
     }
 
-    // Админ-чат через @
+    // РђРґРјРёРЅ-С‡Р°С‚ С‡РµСЂРµР· @
     if (text[0] == '@')
     {
         if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
         {
-            SendClientMessage(playerid, -1, "[ОШИБКА] У вас нет доступа к админ-чату.");
+            SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РЈ РІР°СЃ РЅРµС‚ РґРѕСЃС‚СѓРїР° Рє Р°РґРјРёРЅ-С‡Р°С‚Сѓ.");
             return 0;
         }
 
@@ -497,7 +500,7 @@ stock Admin_OnPlayerText(playerid, text[])
         GetPlayerName(playerid, name, sizeof name);
 
         new message[256];
-        format(message, sizeof message, "[АДМИН] %s (LVL %d): %s", name, AdminData[playerid][AdminLevel], text[1]);
+        format(message, sizeof message, "[РђР”РњРРќ] %s (LVL %d): %s", name, AdminData[playerid][AdminLevel], text[1]);
 
         for (new i = 0; i < MAX_PLAYERS; i++)
         {
@@ -508,7 +511,7 @@ stock Admin_OnPlayerText(playerid, text[])
         }
 
         new log_text[512];
-        format(log_text, sizeof log_text, "Админ-чат: %s", message);
+        format(log_text, sizeof log_text, "РђРґРјРёРЅ-С‡Р°С‚: %s", message);
         LogAdminAction(name, AdminData[playerid][AdminLevel], log_text);
         return 0;
     }
@@ -517,7 +520,7 @@ stock Admin_OnPlayerText(playerid, text[])
 }
 
 // ==========================================
-// КОМАНДЫ АДМИНИСТРАТОРА
+// РљРћРњРђРќР”Р« РђР”РњРРќРРЎРўР РђРўРћР Рђ
 // ==========================================
 
 public OnPlayerCommandText(playerid, cmdtext[])
@@ -546,39 +549,45 @@ public OnPlayerCommandText(playerid, cmdtext[])
     if (!strcmp(cmd, "unban", true)) return cmd_unban(playerid, params);
     if (!strcmp(cmd, "a", true)) return cmd_a(playerid, params);
     if (!strcmp(cmd, "admin", true)) return cmd_admin(playerid, params);
+    if (!strcmp(cmd, "inv", true)) return cmd_inv(playerid, params);
+    if (!strcmp(cmd, "invadd", true)) return cmd_invadd(playerid, params);
+    if (!strcmp(cmd, "invmv", true)) return cmd_invmv(playerid, params);
+    if (!strcmp(cmd, "invuse", true)) return cmd_invuse(playerid, params);
+    if (!strcmp(cmd, "invdrop", true)) return cmd_invdrop(playerid, params);
+    if (!strcmp(cmd, "invgive", true)) return cmd_invgive(playerid, params);
     if (!strcmp(cmd, "veh", true)) return cmd_veh(playerid, params);
-    if (!strcmp(cmd, "авто", true)) return cmd_veh(playerid, params);
+    if (!strcmp(cmd, "Р°РІС‚Рѕ", true)) return cmd_veh(playerid, params);
     if (!strcmp(cmd, "fly", true)) return cmd_fly(playerid, params);
-    if (!strcmp(cmd, "полет", true)) return cmd_fly(playerid, params);
+    if (!strcmp(cmd, "РїРѕР»РµС‚", true)) return cmd_fly(playerid, params);
 
     return 0;
 }
 
-// /setadmin ID LEVEL - только владелец
+// /setadmin ID LEVEL - С‚РѕР»СЊРєРѕ РІР»Р°РґРµР»РµС†
 stock cmd_setadmin(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_OWNER))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Команда доступна только владельцу.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РљРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° С‚РѕР»СЊРєРѕ РІР»Р°РґРµР»СЊС†Сѓ.");
         return 1;
     }
 
     new targetid, level;
     if (sscanf(params, "ii", targetid, level) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /setadmin [ID] [уровень 0-5]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /setadmin [ID] [СѓСЂРѕРІРµРЅСЊ 0-5]");
         return 1;
     }
 
     if (!IsPlayerConnected(targetid))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Игрок не подключен.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РРіСЂРѕРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ.");
         return 1;
     }
 
     if (level < ADMIN_LEVEL_NONE || level > ADMIN_LEVEL_OWNER)
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Уровень должен быть от 0 до 5.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РЈСЂРѕРІРµРЅСЊ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РѕС‚ 0 РґРѕ 5.");
         return 1;
     }
 
@@ -595,51 +604,51 @@ stock cmd_setadmin(playerid, const params[])
     new level_name[64];
     GetAdminLevelName(level, level_name, sizeof level_name);
 
-    format(message, sizeof message, "Вам установлен уровень администратора: %s", level_name);
+    format(message, sizeof message, "Р’Р°Рј СѓСЃС‚Р°РЅРѕРІР»РµРЅ СѓСЂРѕРІРµРЅСЊ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°: %s", level_name);
     SendClientMessage(targetid, 0x00FF00FF, message);
 
-    format(message, sizeof message, "Вы выдали админку %s уровень %d", target_name, level);
+    format(message, sizeof message, "Р’С‹ РІС‹РґР°Р»Рё Р°РґРјРёРЅРєСѓ %s СѓСЂРѕРІРµРЅСЊ %d", target_name, level);
     SendClientMessage(playerid, 0x00FF00FF, message);
 
-    // Лог
+    // Р›РѕРі
     new log_text[256];
-    format(log_text, sizeof log_text, "Изменил админ %s: %d -> %d", target_name, old_level, level);
+    format(log_text, sizeof log_text, "РР·РјРµРЅРёР» Р°РґРјРёРЅ %s: %d -> %d", target_name, old_level, level);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     return 1;
 }
 
-// /kick ID причина
+// /kick ID РїСЂРёС‡РёРЅР°
 stock cmd_kick(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
     new targetid, reason[128];
-    if (sscanf(params, "iS(Нарушение правил)[128]", targetid, reason) != 0)
+    if (sscanf(params, "iS(РќР°СЂСѓС€РµРЅРёРµ РїСЂР°РІРёР»)[128]", targetid, reason) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /kick [ID] [причина]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /kick [ID] [РїСЂРёС‡РёРЅР°]");
         return 1;
     }
 
     if (!IsPlayerConnected(targetid))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Игрок не подключен.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РРіСЂРѕРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ.");
         return 1;
     }
 
     if (targetid == playerid)
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нельзя кикнуть себя.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµР»СЊР·СЏ РєРёРєРЅСѓС‚СЊ СЃРµР±СЏ.");
         return 1;
     }
 
     if (AdminData[targetid][AdminLevel] > AdminData[playerid][AdminLevel])
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Игрок выше уровнем.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РРіСЂРѕРє РІС‹С€Рµ СѓСЂРѕРІРЅРµРј.");
         return 1;
     }
 
@@ -649,38 +658,38 @@ stock cmd_kick(playerid, const params[])
     GetPlayerName(targetid, target_name, sizeof target_name);
 
     new message[256];
-    format(message, sizeof message, "%s был кикнут. Причина: %s", target_name, reason);
+    format(message, sizeof message, "%s Р±С‹Р» РєРёРєРЅСѓС‚. РџСЂРёС‡РёРЅР°: %s", target_name, reason);
     SendClientMessageToAll(-1, message);
 
-    // Лог
+    // Р›РѕРі
     new log_text[256];
-    format(log_text, sizeof log_text, "Кик %s: %s", target_name, reason);
+    format(log_text, sizeof log_text, "РљРёРє %s: %s", target_name, reason);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     Kick(targetid);
     return 1;
 }
 
-// /mute ID минуты причина
+// /mute ID РјРёРЅСѓС‚С‹ РїСЂРёС‡РёРЅР°
 stock cmd_mute(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_2))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
     new targetid, minutes;
     new reason[128];
-    if (sscanf(params, "iiS(Спам)[128]", targetid, minutes, reason) != 0)
+    if (sscanf(params, "iiS(РЎРїР°Рј)[128]", targetid, minutes, reason) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /mute [ID] [минуты] [причина]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /mute [ID] [РјРёРЅСѓС‚С‹] [РїСЂРёС‡РёРЅР°]");
         return 1;
     }
 
     if (!IsPlayerConnected(targetid))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Игрок не подключен.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РРіСЂРѕРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ.");
         return 1;
     }
 
@@ -694,12 +703,12 @@ stock cmd_mute(playerid, const params[])
     format(AdminData[targetid][MuteReason], ADMIN_MUTE_REASON_SIZE, "%s", reason);
 
     new message[256];
-    format(message, sizeof message, "%s был замучен на %d минут. Причина: %s", target_name, minutes, reason);
+    format(message, sizeof message, "%s Р±С‹Р» Р·Р°РјСѓС‡РµРЅ РЅР° %d РјРёРЅСѓС‚. РџСЂРёС‡РёРЅР°: %s", target_name, minutes, reason);
     SendClientMessageToAll(-1, message);
 
-    // Лог
+    // Р›РѕРі
     new log_text[256];
-    format(log_text, sizeof log_text, "Мут %s на %d мин: %s", target_name, minutes, reason);
+    format(log_text, sizeof log_text, "РњСѓС‚ %s РЅР° %d РјРёРЅ: %s", target_name, minutes, reason);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     return 1;
@@ -710,20 +719,20 @@ stock cmd_unmute(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_2))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
     new targetid;
     if (sscanf(params, "i", targetid) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /unmute [ID]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /unmute [ID]");
         return 1;
     }
 
     if (!IsPlayerConnected(targetid))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Игрок не подключен.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РРіСЂРѕРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ.");
         return 1;
     }
 
@@ -737,42 +746,42 @@ stock cmd_unmute(playerid, const params[])
     AdminData[targetid][MuteReason][0] = '\0';
 
     new message[256];
-    format(message, sizeof message, "%s был размучен.", target_name);
+    format(message, sizeof message, "%s Р±С‹Р» СЂР°Р·РјСѓС‡РµРЅ.", target_name);
     SendClientMessageToAll(-1, message);
 
-    // Лог
+    // Р›РѕРі
     new log_text[256];
-    format(log_text, sizeof log_text, "Размут %s", target_name);
+    format(log_text, sizeof log_text, "Р Р°Р·РјСѓС‚ %s", target_name);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     return 1;
 }
 
-// /goto ID - телепортация к игроку
+// /goto ID - С‚РµР»РµРїРѕСЂС‚Р°С†РёСЏ Рє РёРіСЂРѕРєСѓ
 stock cmd_goto(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
     new targetid;
     if (sscanf(params, "i", targetid) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /goto [ID]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /goto [ID]");
         return 1;
     }
 
     if (!IsPlayerConnected(targetid))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Игрок не подключен.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РРіСЂРѕРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ.");
         return 1;
     }
 
     if (targetid == playerid)
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Вы уже здесь.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] Р’С‹ СѓР¶Рµ Р·РґРµСЃСЊ.");
         return 1;
     }
 
@@ -794,42 +803,42 @@ stock cmd_goto(playerid, const params[])
     GetPlayerName(targetid, target_name, sizeof target_name);
 
     new message[256];
-    format(message, sizeof message, "Вы телепортировались к %s", target_name);
+    format(message, sizeof message, "Р’С‹ С‚РµР»РµРїРѕСЂС‚РёСЂРѕРІР°Р»РёСЃСЊ Рє %s", target_name);
     SendClientMessage(playerid, 0x00FF00FF, message);
 
-    // Лог
+    // Р›РѕРі
     new log_text[256];
-    format(log_text, sizeof log_text, "Телепорт к %s", target_name);
+    format(log_text, sizeof log_text, "РўРµР»РµРїРѕСЂС‚ Рє %s", target_name);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     return 1;
 }
 
-// /gethere ID - телепортация игрока к администратору
+// /gethere ID - С‚РµР»РµРїРѕСЂС‚Р°С†РёСЏ РёРіСЂРѕРєР° Рє Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂСѓ
 stock cmd_gethere(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
     new targetid;
     if (sscanf(params, "i", targetid) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /gethere [ID]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /gethere [ID]");
         return 1;
     }
 
     if (!IsPlayerConnected(targetid))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Игрок не подключен.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РРіСЂРѕРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ.");
         return 1;
     }
 
     if (targetid == playerid)
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нельзя телепортировать себя.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµР»СЊР·СЏ С‚РµР»РµРїРѕСЂС‚РёСЂРѕРІР°С‚СЊ СЃРµР±СЏ.");
         return 1;
     }
 
@@ -851,40 +860,40 @@ stock cmd_gethere(playerid, const params[])
     GetPlayerName(targetid, target_name, sizeof target_name);
 
     new message[256];
-    format(message, sizeof message, "Вас телепортировали к администратору %s", admin_name);
+    format(message, sizeof message, "Р’Р°СЃ С‚РµР»РµРїРѕСЂС‚РёСЂРѕРІР°Р»Рё Рє Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂСѓ %s", admin_name);
     SendClientMessage(targetid, 0x00FF00FF, message);
 
-    format(message, sizeof message, "Вы телепортировали %s к себе", target_name);
+    format(message, sizeof message, "Р’С‹ С‚РµР»РµРїРѕСЂС‚РёСЂРѕРІР°Р»Рё %s Рє СЃРµР±Рµ", target_name);
     SendClientMessage(playerid, 0x00FF00FF, message);
 
-    // Лог
+    // Р›РѕРі
     new log_text[256];
-    format(log_text, sizeof log_text, "Телепорт к себе %s", target_name);
+    format(log_text, sizeof log_text, "РўРµР»РµРїРѕСЂС‚ Рє СЃРµР±Рµ %s", target_name);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     return 1;
 }
 
-// /ban ID дни причина
+// /ban ID РґРЅРё РїСЂРёС‡РёРЅР°
 stock cmd_ban(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_4))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
     new targetid, days;
     new reason[128];
-    if (sscanf(params, "iiS(Нарушение правил)[128]", targetid, days, reason) != 0)
+    if (sscanf(params, "iiS(РќР°СЂСѓС€РµРЅРёРµ РїСЂР°РІРёР»)[128]", targetid, days, reason) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /ban [ID] [дни] [причина]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /ban [ID] [РґРЅРё] [РїСЂРёС‡РёРЅР°]");
         return 1;
     }
 
     if (!IsPlayerConnected(targetid))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Игрок не подключен.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РРіСЂРѕРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ.");
         return 1;
     }
 
@@ -896,31 +905,31 @@ stock cmd_ban(playerid, const params[])
     BanDB_Add(target_name, reason, days, admin_name);
 
     new message[256];
-    format(message, sizeof message, "%s был забанен на %d дней. Причина: %s", target_name, days, reason);
+    format(message, sizeof message, "%s Р±С‹Р» Р·Р°Р±Р°РЅРµРЅ РЅР° %d РґРЅРµР№. РџСЂРёС‡РёРЅР°: %s", target_name, days, reason);
     SendClientMessageToAll(-1, message);
 
-    // Лог
+    // Р›РѕРі
     new log_text[256];
-    format(log_text, sizeof log_text, "Бан %s на %d дн: %s", target_name, days, reason);
+    format(log_text, sizeof log_text, "Р‘Р°РЅ %s РЅР° %d РґРЅ: %s", target_name, days, reason);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     Kick(targetid);
     return 1;
 }
 
-// /unban имя
+// /unban РёРјСЏ
 stock cmd_unban(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_4))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
     new banname[MAX_PLAYER_NAME];
     if (sscanf(params, "s[24]", banname) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /unban [имя]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /unban [РёРјСЏ]");
         return 1;
     }
 
@@ -930,29 +939,29 @@ stock cmd_unban(playerid, const params[])
     BanDB_Remove(banname);
 
     new message[256];
-    format(message, sizeof message, "%s был разбанен.", banname);
+    format(message, sizeof message, "%s Р±С‹Р» СЂР°Р·Р±Р°РЅРµРЅ.", banname);
     SendClientMessage(playerid, 0x00FF00FF, message);
 
-    // Лог
+    // Р›РѕРі
     new log_text[256];
-    format(log_text, sizeof log_text, "Разбан %s", banname);
+    format(log_text, sizeof log_text, "Р Р°Р·Р±Р°РЅ %s", banname);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     return 1;
 }
 
-// /a текст - админ-чат
+// /a С‚РµРєСЃС‚ - Р°РґРјРёРЅ-С‡Р°С‚
 stock cmd_a(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_1))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] У вас нет доступа к админ-чату.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РЈ РІР°СЃ РЅРµС‚ РґРѕСЃС‚СѓРїР° Рє Р°РґРјРёРЅ-С‡Р°С‚Сѓ.");
         return 1;
     }
 
     if (strlen(params) < 1)
     {
-        SendClientMessage(playerid, -1, "Использование: /a [сообщение]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /a [СЃРѕРѕР±С‰РµРЅРёРµ]");
         return 1;
     }
 
@@ -960,7 +969,7 @@ stock cmd_a(playerid, const params[])
     GetPlayerName(playerid, name, sizeof name);
 
     new message[256];
-    format(message, sizeof message, "[АДМИН] %s (LVL %d): %s", name, AdminData[playerid][AdminLevel], params);
+    format(message, sizeof message, "[РђР”РњРРќ] %s (LVL %d): %s", name, AdminData[playerid][AdminLevel], params);
 
     for (new i = 0; i < MAX_PLAYERS; i++)
     {
@@ -970,56 +979,56 @@ stock cmd_a(playerid, const params[])
         }
     }
 
-    // Лог
+    // Р›РѕРі
     new log_text[512];
-    format(log_text, sizeof log_text, "Админ-чат: %s", message);
+    format(log_text, sizeof log_text, "РђРґРјРёРЅ-С‡Р°С‚: %s", message);
     LogAdminAction(name, AdminData[playerid][AdminLevel], log_text);
 
     return 1;
 }
 
-// /admin - информация об админ-системе
+// /admin - РёРЅС„РѕСЂРјР°С†РёСЏ РѕР± Р°РґРјРёРЅ-СЃРёСЃС‚РµРјРµ
 stock cmd_admin(playerid, const params[])
 {
     #pragma unused params
     new level_name[64];
     GetAdminLevelName(AdminData[playerid][AdminLevel], level_name, sizeof level_name);
 
-    SendClientMessage(playerid, -1, "=== ИНФОРМАЦИЯ О ПРОФИЛЕ ===");
+    SendClientMessage(playerid, -1, "=== РРќР¤РћР РњРђР¦РРЇ Рћ РџР РћР¤РР›Р• ===");
     new level_msg[96];
-    format(level_msg, sizeof level_msg, "Уровень: %s (%d)", level_name, AdminData[playerid][AdminLevel]);
+    format(level_msg, sizeof level_msg, "РЈСЂРѕРІРµРЅСЊ: %s (%d)", level_name, AdminData[playerid][AdminLevel]);
     SendClientMessage(playerid, -1, level_msg);
-    SendClientMessage(playerid, -1, "=== ДОСТУПНЫЕ КОМАНДЫ ===");
+    SendClientMessage(playerid, -1, "=== Р”РћРЎРўРЈРџРќР«Р• РљРћРњРђРќР”Р« ===");
 
     if (AdminData[playerid][AdminLevel] >= ADMIN_LEVEL_1)
     {
-        SendClientMessage(playerid, -1, "/a [текст] - админ-чат");
-        SendClientMessage(playerid, -1, "/kick [ID] [причина] - кикнуть игрока");
-        SendClientMessage(playerid, -1, "/goto [ID] - телепортироваться к игроку");
-        SendClientMessage(playerid, -1, "/gethere [ID] - телепортировать игрока");
+        SendClientMessage(playerid, -1, "/a [С‚РµРєСЃС‚] - Р°РґРјРёРЅ-С‡Р°С‚");
+        SendClientMessage(playerid, -1, "/kick [ID] [РїСЂРёС‡РёРЅР°] - РєРёРєРЅСѓС‚СЊ РёРіСЂРѕРєР°");
+        SendClientMessage(playerid, -1, "/goto [ID] - С‚РµР»РµРїРѕСЂС‚РёСЂРѕРІР°С‚СЊСЃСЏ Рє РёРіСЂРѕРєСѓ");
+        SendClientMessage(playerid, -1, "/gethere [ID] - С‚РµР»РµРїРѕСЂС‚РёСЂРѕРІР°С‚СЊ РёРіСЂРѕРєР°");
     }
 
     if (AdminData[playerid][AdminLevel] >= ADMIN_LEVEL_2)
     {
-        SendClientMessage(playerid, -1, "/mute [ID] [минуты] [причина] - замутить игрока");
-        SendClientMessage(playerid, -1, "/unmute [ID] - размутить игрока");
+        SendClientMessage(playerid, -1, "/mute [ID] [РјРёРЅСѓС‚С‹] [РїСЂРёС‡РёРЅР°] - Р·Р°РјСѓС‚РёС‚СЊ РёРіСЂРѕРєР°");
+        SendClientMessage(playerid, -1, "/unmute [ID] - СЂР°Р·РјСѓС‚РёС‚СЊ РёРіСЂРѕРєР°");
     }
 
     if (AdminData[playerid][AdminLevel] >= ADMIN_LEVEL_3)
     {
-        SendClientMessage(playerid, -1, "/fly - включить/выключить полёт");
-        SendClientMessage(playerid, -1, "/veh [ID] - заспавнить транспорт");
+        SendClientMessage(playerid, -1, "/fly - РІРєР»СЋС‡РёС‚СЊ/РІС‹РєР»СЋС‡РёС‚СЊ РїРѕР»С‘С‚");
+        SendClientMessage(playerid, -1, "/veh [ID] - Р·Р°СЃРїР°РІРЅРёС‚СЊ С‚СЂР°РЅСЃРїРѕСЂС‚");
     }
 
     if (AdminData[playerid][AdminLevel] >= ADMIN_LEVEL_4)
     {
-        SendClientMessage(playerid, -1, "/ban [ID] [дни] [причина] - забанить игрока");
-        SendClientMessage(playerid, -1, "/unban [имя] - разбанить игрока");
+        SendClientMessage(playerid, -1, "/ban [ID] [РґРЅРё] [РїСЂРёС‡РёРЅР°] - Р·Р°Р±Р°РЅРёС‚СЊ РёРіСЂРѕРєР°");
+        SendClientMessage(playerid, -1, "/unban [РёРјСЏ] - СЂР°Р·Р±Р°РЅРёС‚СЊ РёРіСЂРѕРєР°");
     }
 
     if (AdminData[playerid][AdminLevel] >= ADMIN_LEVEL_OWNER)
     {
-        SendClientMessage(playerid, -1, "/setadmin [ID] [уровень] - установить админ-уровень");
+        SendClientMessage(playerid, -1, "/setadmin [ID] [СѓСЂРѕРІРµРЅСЊ] - СѓСЃС‚Р°РЅРѕРІРёС‚СЊ Р°РґРјРёРЅ-СѓСЂРѕРІРµРЅСЊ");
     }
 
     return 1;
@@ -1034,20 +1043,20 @@ stock cmd_veh(playerid, const params[])
 {
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_3))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
     new vehicleid;
     if (sscanf(params, "i", vehicleid) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /veh [ID транспорта 400-611]");
+        SendClientMessage(playerid, -1, "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: /veh [ID С‚СЂР°РЅСЃРїРѕСЂС‚Р° 400-611]");
         return 1;
     }
 
     if (vehicleid < 400 || vehicleid > 611)
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] ID транспорта должен быть 400-611.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] ID С‚СЂР°РЅСЃРїРѕСЂС‚Р° РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ 400-611.");
         return 1;
     }
 
@@ -1060,7 +1069,7 @@ stock cmd_veh(playerid, const params[])
     new Float:spawn_x = x + floatsin(a, degrees) * spawn_dist;
     new Float:spawn_y = y + floatcos(a, degrees) * spawn_dist;
 
-    // Face the player ("напротив игрока").
+    // Face the player ("РЅР°РїСЂРѕС‚РёРІ РёРіСЂРѕРєР°").
     new Float:veh_a = a + 180.0;
     if (veh_a >= 360.0) veh_a -= 360.0;
 
@@ -1068,7 +1077,7 @@ stock cmd_veh(playerid, const params[])
     
     if (veh == INVALID_VEHICLE_ID)
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Не удалось создать транспорт.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ С‚СЂР°РЅСЃРїРѕСЂС‚.");
         return 1;
     }
 
@@ -1076,11 +1085,11 @@ stock cmd_veh(playerid, const params[])
     GetPlayerName(playerid, admin_name, sizeof admin_name);
 
     new message[128];
-    format(message, sizeof message, "Транспорт создан: ID %d", vehicleid);
+    format(message, sizeof message, "РўСЂР°РЅСЃРїРѕСЂС‚ СЃРѕР·РґР°РЅ: ID %d", vehicleid);
     SendClientMessage(playerid, 0x00FF00FF, message);
 
     new log_text[256];
-    format(log_text, sizeof log_text, "Спавн транспорта: %d", vehicleid);
+    format(log_text, sizeof log_text, "РЎРїР°РІРЅ С‚СЂР°РЅСЃРїРѕСЂС‚Р°: %d", vehicleid);
     LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
 
     return 1;
@@ -1098,7 +1107,7 @@ stock cmd_fly(playerid, const params[])
     
     if (!HasAdminLevel(playerid, ADMIN_LEVEL_3))
     {
-        SendClientMessage(playerid, -1, "[ОШИБКА] Нет доступа к этой команде.");
+        SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµС‚ РґРѕСЃС‚СѓРїР° Рє СЌС‚РѕР№ РєРѕРјР°РЅРґРµ.");
         return 1;
     }
 
@@ -1119,7 +1128,7 @@ stock cmd_fly(playerid, const params[])
             if (gFlyCamObject[playerid] == INVALID_OBJECT_ID)
             {
                 gPlayerFlying[playerid] = false;
-                SendClientMessage(playerid, -1, "[ОШИБКА] Не удалось создать объект камеры для /fly.");
+                SendClientMessage(playerid, -1, "[РћРЁРР‘РљРђ] РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РѕР±СЉРµРєС‚ РєР°РјРµСЂС‹ РґР»СЏ /fly.");
                 return 1;
             }
             gFlyCamObjectCreated[playerid] = true;
@@ -1128,16 +1137,16 @@ stock cmd_fly(playerid, const params[])
         SetPlayerObjectPos(playerid, gFlyCamObject[playerid], x, y, z + 0.7);
         AttachCameraToPlayerObject(playerid, gFlyCamObject[playerid]);
 
-        SendClientMessage(playerid, 0x00FF00FF, "Режим полёта: ВКЛ. Управление: W/S/A/D/Shift/C. Для быстрого отклика направления удерживай ПКМ (прицел).");
-        // LogAdminAction(admin_name, AdminData[playerid][AdminLevel], "Включён режим полёта");
+        SendClientMessage(playerid, 0x00FF00FF, "Р РµР¶РёРј РїРѕР»С‘С‚Р°: Р’РљР›. РЈРїСЂР°РІР»РµРЅРёРµ: W/S/A/D/Shift/C. Р”Р»СЏ Р±С‹СЃС‚СЂРѕРіРѕ РѕС‚РєР»РёРєР° РЅР°РїСЂР°РІР»РµРЅРёСЏ СѓРґРµСЂР¶РёРІР°Р№ РџРљРњ (РїСЂРёС†РµР»).");
+        // LogAdminAction(admin_name, AdminData[playerid][AdminLevel], "Р’РєР»СЋС‡С‘РЅ СЂРµР¶РёРј РїРѕР»С‘С‚Р°");
 
         new log_text[256];
-        format(log_text, sizeof log_text, "Включён режим полёта");
+        format(log_text, sizeof log_text, "Р’РєР»СЋС‡С‘РЅ СЂРµР¶РёРј РїРѕР»С‘С‚Р°");
         LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
     }
     else
     {
-        SendClientMessage(playerid, 0x00FF00FF, "Режим полёта: ВЫКЛ.");
+        SendClientMessage(playerid, 0x00FF00FF, "Р РµР¶РёРј РїРѕР»С‘С‚Р°: Р’Р«РљР›.");
         SetCameraBehindPlayer(playerid);
 
         if (gFlyCamObjectCreated[playerid])
@@ -1146,10 +1155,10 @@ stock cmd_fly(playerid, const params[])
             gFlyCamObjectCreated[playerid] = false;
         }
 
-        LogAdminAction(admin_name, AdminData[playerid][AdminLevel], "Выключен режим полёта");
+        LogAdminAction(admin_name, AdminData[playerid][AdminLevel], "Р’С‹РєР»СЋС‡РµРЅ СЂРµР¶РёРј РїРѕР»С‘С‚Р°");
 
         new log_text[256];
-        format(log_text, sizeof log_text, "Выключен режим полёта");
+        format(log_text, sizeof log_text, "Р’С‹РєР»СЋС‡РµРЅ СЂРµР¶РёРј РїРѕР»С‘С‚Р°");
         LogAdminAction(admin_name, AdminData[playerid][AdminLevel], log_text);
     }
 

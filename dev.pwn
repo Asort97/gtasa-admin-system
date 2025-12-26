@@ -4,13 +4,13 @@
 #define DB_FILE "server.db"
 #define INVALID_RESULT (DBResult:0)
 
-// ---- Диалоги
+// ---- РґРёР°Р»РѕРіРё
 #define DIALOG_AUTH_CHOICE     1000
 #define DIALOG_AUTH_LOGIN      1001
 #define DIALOG_AUTH_REG_1      1002
 #define DIALOG_AUTH_REG_2      1003
 
-// ---- Настройки авторизации
+// ---- РЅР°СЃС‚СЂРѕР№РєРё Р°РІС‚РѕСЂРёР·Р°С†РёРё
 #define AUTH_TIMEOUT_MS        30000
 #define AUTH_MAX_ATTEMPTS      3
 
@@ -20,6 +20,7 @@ enum E_PLAYER_DATA
 {
     bool:Logged,
     bool:Loaded,
+    AccountId,
 
     Money,
 
@@ -37,7 +38,7 @@ enum E_PLAYER_DATA
 }
 new PlayerData[MAX_PLAYERS][E_PLAYER_DATA];
 
-// состояние авторизации
+// РґР°РЅРЅС‹Рµ Р°РІС‚РѕСЂРёР·Р°С†РёРё
 new bool:gAwaitAuth[MAX_PLAYERS];
 new gAuthAttempts[MAX_PLAYERS];
 new gAuthTimer[MAX_PLAYERS];
@@ -68,21 +69,77 @@ stock SQLEscape(const input[], output[], out_size)
     output[j] = '\0';
 }
 
+stock bool:DB_TableExists(const table[])
+{
+    new etable[128];
+    SQLEscape(table, etable, sizeof etable);
+
+    new q[256];
+    format(q, sizeof q, "SELECT name FROM sqlite_master WHERE type='table' AND name='%s' LIMIT 1;", etable);
+    new DBResult:r = DB_ExecuteQuery(gDB, q);
+    if (r == INVALID_RESULT) return false;
+    new rows = DB_GetRowCount(r);
+    DB_FreeResultSet(r);
+    return (rows > 0);
+}
+
+stock bool:DB_ColumnExists(const table[], const column[])
+{
+    new etable[128];
+    new ecolumn[128];
+    SQLEscape(table, etable, sizeof etable);
+    SQLEscape(column, ecolumn, sizeof ecolumn);
+
+    new q[256];
+    format(q, sizeof q, "SELECT 1 FROM pragma_table_info('%s') WHERE name='%s' LIMIT 1;", etable, ecolumn);
+    new DBResult:r = DB_ExecuteQuery(gDB, q);
+    if (r == INVALID_RESULT) return false;
+    new rows = DB_GetRowCount(r);
+    DB_FreeResultSet(r);
+    return (rows > 0);
+}
+
+#include <sscanf2>
+#include "inventory.pwn"
 #include "admin.pwn"
 
-// -------------------- DB миграция (чтобы старая БД не ломалась) --------------------
+// -------------------- DB РјРёРіСЂР°С†РёСЏ (СЃРјРµРЅР° РєР»СЋС‡Р° РЅР° id Р°РєРєР°СѓРЅС‚Р°) --------------------
 stock DB_MigrateAccounts()
 {
-    // базовая таблица (если нет)
-    DB_ExecuteQuery(gDB, "CREATE TABLE IF NOT EXISTS accounts (name TEXT PRIMARY KEY, pass TEXT, money INTEGER, x REAL, y REAL, z REAL, a REAL, hp REAL, arm REAL, skin INTEGER, interior INTEGER, vw INTEGER);");
+    if (gDB == DB:0) return 0;
 
-    // добавляем колонки в старую таблицу (если уже была без них)
-    DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN a REAL;");
-    DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN hp REAL;");
-    DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN arm REAL;");
-    DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN skin INTEGER;");
-    DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN interior INTEGER;");
-    DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN vw INTEGER;");
+    if (!DB_TableExists("accounts"))
+    {
+        DB_ExecuteQuery(gDB, "CREATE TABLE accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, pass TEXT, money INTEGER, x REAL, y REAL, z REAL, a REAL, hp REAL, arm REAL, skin INTEGER, interior INTEGER, vw INTEGER, admin INTEGER DEFAULT 0);");
+        return 1;
+    }
+
+    if (!DB_ColumnExists("accounts", "id"))
+    {
+        new bool:has_admin = DB_ColumnExists("accounts", "admin");
+
+        DB_ExecuteQuery(gDB, "CREATE TABLE accounts_new (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, pass TEXT, money INTEGER, x REAL, y REAL, z REAL, a REAL, hp REAL, arm REAL, skin INTEGER, interior INTEGER, vw INTEGER, admin INTEGER DEFAULT 0);");
+
+        if (has_admin)
+        {
+            DB_ExecuteQuery(gDB, "INSERT INTO accounts_new (name,pass,money,x,y,z,a,hp,arm,skin,interior,vw,admin) SELECT name,pass,money,x,y,z,a,hp,arm,skin,interior,vw,admin FROM accounts;");
+        }
+        else
+        {
+            DB_ExecuteQuery(gDB, "INSERT INTO accounts_new (name,pass,money,x,y,z,a,hp,arm,skin,interior,vw) SELECT name,pass,money,x,y,z,a,hp,arm,skin,interior,vw FROM accounts;");
+        }
+
+        DB_ExecuteQuery(gDB, "DROP TABLE accounts;");
+        DB_ExecuteQuery(gDB, "ALTER TABLE accounts_new RENAME TO accounts;");
+    }
+
+    if (!DB_ColumnExists("accounts", "a")) DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN a REAL;");
+    if (!DB_ColumnExists("accounts", "hp")) DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN hp REAL;");
+    if (!DB_ColumnExists("accounts", "arm")) DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN arm REAL;");
+    if (!DB_ColumnExists("accounts", "skin")) DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN skin INTEGER;");
+    if (!DB_ColumnExists("accounts", "interior")) DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN interior INTEGER;");
+    if (!DB_ColumnExists("accounts", "vw")) DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN vw INTEGER;");
+    if (!DB_ColumnExists("accounts", "admin")) DB_ExecuteQuery(gDB, "ALTER TABLE accounts ADD COLUMN admin INTEGER DEFAULT 0;");
     return 1;
 }
 
@@ -131,7 +188,7 @@ stock bool:LoadAccount(playerid, const name[])
     SQLEscape(name, ename, sizeof ename);
 
     new q[512];
-    format(q, sizeof q, "SELECT money,x,y,z,a,hp,arm,skin,interior,vw FROM accounts WHERE name='%s' LIMIT 1;", ename);
+    format(q, sizeof q, "SELECT id,money,x,y,z,a,hp,arm,skin,interior,vw FROM accounts WHERE name='%s' LIMIT 1;", ename);
 
     new DBResult:r = DB_ExecuteQuery(gDB, q);
     if (r == INVALID_RESULT) return false;
@@ -142,7 +199,8 @@ stock bool:LoadAccount(playerid, const name[])
         return false;
     }
 
-    PlayerData[playerid][Money]    = DB_GetFieldIntByName(r, "money");
+    PlayerData[playerid][AccountId] = DB_GetFieldIntByName(r, "id");
+    PlayerData[playerid][Money]     = DB_GetFieldIntByName(r, "money");
     PlayerData[playerid][PX]       = DB_GetFieldFloatByName(r, "x");
     PlayerData[playerid][PY]       = DB_GetFieldFloatByName(r, "y");
     PlayerData[playerid][PZ]       = DB_GetFieldFloatByName(r, "z");
@@ -155,7 +213,7 @@ stock bool:LoadAccount(playerid, const name[])
 
     DB_FreeResultSet(r);
 
-    // значения по умолчанию, если в БД нули
+    // Р—РЅР°С‡РµРЅРёСЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РµСЃР»Рё РІ Р‘Р” РЅСѓР»Рё
     if (PlayerData[playerid][Health] <= 0.0) PlayerData[playerid][Health] = 100.0;
     if (PlayerData[playerid][Skin] <= 0) PlayerData[playerid][Skin] = 0;
 
@@ -169,7 +227,7 @@ stock bool:CreateAccount(const name[], const pass[])
     SQLEscape(name, ename, sizeof ename);
     SQLEscape(pass, epass, sizeof epass);
 
-    // стартовые значения
+    // РЎРѕР·РґР°РЅРёРµ Р°РєРєР°СѓРЅС‚Р°
     new q[768];
     format(q, sizeof q,
     "INSERT INTO accounts (name,pass,money,x,y,z,a,hp,arm,skin,interior,vw) VALUES('%s','%s',5000,1958.3783,1343.1572,15.3746,270.0,100.0,0.0,0,0,0);",
@@ -187,12 +245,7 @@ stock SaveAccount(playerid)
 {
     if (!PlayerData[playerid][Logged]) return 1;
     if (gDB == DB:0) return 1;
-
-    new name[MAX_PLAYER_NAME];
-    GetPlayerName(playerid, name, sizeof name);
-
-    new ename[MAX_PLAYER_NAME * 2 + 8];
-    SQLEscape(name, ename, sizeof ename);
+    if (PlayerData[playerid][AccountId] <= 0) return 1;
 
     new Float:x, Float:y, Float:z, Float:a;
     GetPlayerPos(playerid, x, y, z);
@@ -209,8 +262,8 @@ stock SaveAccount(playerid)
 
     new q[768];
     format(q, sizeof q,
-        "UPDATE accounts SET money=%d, x=%f, y=%f, z=%f, a=%f, hp=%f, arm=%f, skin=%d, interior=%d, vw=%d WHERE name='%s';",
-        money, x, y, z, a, hp, arm, skin, interior, vw, ename
+        "UPDATE accounts SET money=%d, x=%f, y=%f, z=%f, a=%f, hp=%f, arm=%f, skin=%d, interior=%d, vw=%d WHERE id=%d;",
+        money, x, y, z, a, hp, arm, skin, interior, vw, PlayerData[playerid][AccountId]
     );
 
     new DBResult:r = DB_ExecuteQuery(gDB, q);
@@ -239,10 +292,10 @@ stock StartAuth(playerid)
         playerid,
         DIALOG_AUTH_CHOICE,
         DIALOG_STYLE_LIST,
-        "Авторизация",
-        "Войти\nРегистрация",
-        "Выбрать",
-        "Выход"
+        "РђРІС‚РѕСЂРёР·Р°С†РёСЏ",
+        "Р’С…РѕРґ\nР РµРіРёСЃС‚СЂР°С†РёСЏ",
+        "Р’С‹Р±СЂР°С‚СЊ",
+        "Р’С‹С…РѕРґ"
     );
     return 1;
 }
@@ -266,7 +319,7 @@ public AuthTimeout(playerid)
     if (!IsPlayerConnected(playerid)) return 0;
     if (gAwaitAuth[playerid])
     {
-        SendClientMessage(playerid, -1, "Вы не успели авторизоваться.");
+        SendClientMessage(playerid, -1, "Р’С‹ РЅРµ СѓСЃРїРµР»Рё Р°РІС‚РѕСЂРёР·РѕРІР°С‚СЊСЃСЏ.");
         Kick(playerid);
     }
     return 1;
@@ -286,6 +339,7 @@ public OnGameModeInit()
         DB_MigrateAccounts();
         AdminDB_Migrate();
         BanDB_CreateTable();
+        Inv_DB_Migrate();
     }
 
     SetGameModeText("DEV MODE");
@@ -318,24 +372,25 @@ public OnPlayerConnect(playerid)
 {
     PlayerData[playerid][Logged] = false;
     PlayerData[playerid][Loaded] = false;
+    PlayerData[playerid][AccountId] = 0;
 
     Admin_OnPlayerConnect(playerid);
 
     if (gDB == DB:0)
     {
-        SendClientMessage(playerid, -1, "Ошибка базы данных. Сервер настроен неверно.");
+        SendClientMessage(playerid, -1, "РћС€РёР±РєР° Р±Р°Р·С‹ РґР°РЅРЅС‹С…. РЎРµСЂРІРµСЂ РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
         Kick(playerid);
         return 1;
     }
-    // Проверяем бан при подключении
+    // РџСЂРѕРІРµСЂРєР° Р±Р°РЅР° РїСЂРё РїРѕРґРєР»СЋС‡РµРЅРёРё
     new name[MAX_PLAYER_NAME];
     GetPlayerName(playerid, name, sizeof name);
-    
+
     new ban_reason[128];
     if (BanDB_IsPlayerBanned(name, ban_reason, sizeof ban_reason))
     {
         new ban_msg[160];
-        format(ban_msg, sizeof ban_msg, "Вы забанены. Причина: %s", ban_reason);
+        format(ban_msg, sizeof ban_msg, "Р’С‹ Р·Р°Р±Р°РЅРµРЅС‹. РџСЂРёС‡РёРЅР°: %s", ban_reason);
         SendClientMessage(playerid, -1, ban_msg);
         Kick(playerid);
         return 1;
@@ -343,9 +398,9 @@ public OnPlayerConnect(playerid)
     StartAuth(playerid);
     return 1;
 }
-
 public OnPlayerDisconnect(playerid, reason)
 {
+    Inv_UnloadPlayer(playerid);
     SaveAccount(playerid);
 
     if (gAuthTimer[playerid] != 0)
@@ -360,6 +415,7 @@ public OnPlayerDisconnect(playerid, reason)
 
     PlayerData[playerid][Logged] = false;
     PlayerData[playerid][Loaded] = false;
+    PlayerData[playerid][AccountId] = 0;
 
     Admin_OnPlayerDisconnect(playerid, reason);
     return 1;
@@ -374,7 +430,7 @@ public OnPlayerSpawn(playerid)
 
     if (PlayerData[playerid][Logged] && PlayerData[playerid][Loaded])
     {
-        // VW/Interior до позиции (иначе могут быть глюки)
+        // VW/Interior РїРѕ РґР°РЅРЅС‹Рј (РЅСѓР¶РЅРѕ РїРѕСЃР»Рµ Р»РѕРіРёРЅР°)
         SetPlayerVirtualWorld(playerid, PlayerData[playerid][VW]);
         SetPlayerInterior(playerid, PlayerData[playerid][Interior]);
 
@@ -388,6 +444,9 @@ public OnPlayerSpawn(playerid)
 
         ResetPlayerMoney(playerid);
         GivePlayerMoney(playerid, PlayerData[playerid][Money]);
+
+        // Apply equip effects (armour/backpack) after spawn.
+        Inv_RefreshPlayerEquip(playerid);
     }
     else
     {
@@ -410,12 +469,12 @@ public FixInput(playerid)
     return 1;
 }
 
-// блокируем чат до авторизации
+// Р—Р°РїСЂРµС‚ С‡Р°С‚Р° РґРѕ Р°РІС‚РѕСЂРёР·Р°С†РёРё
 public OnPlayerText(playerid, text[])
 {
     if (gAwaitAuth[playerid])
     {
-        SendClientMessage(playerid, -1, "Сначала войдите или зарегистрируйтесь.");
+        SendClientMessage(playerid, -1, "РЎРЅР°С‡Р°Р»Р° РїСЂРѕР№РґРёС‚Рµ Р°РІС‚РѕСЂРёР·Р°С†РёСЋ.");
         return 0;
     }
 
@@ -435,20 +494,20 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         if (listitem == 0)
         {
             ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD,
-                "Вход",
-                "Введите пароль:",
-                "Войти",
-                "Назад"
+                "Р’С…РѕРґ",
+                "Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ:",
+                "Р’РѕР№С‚Рё",
+                "РќР°Р·Р°Рґ"
             );
             return 1;
         }
         else
         {
             ShowPlayerDialog(playerid, DIALOG_AUTH_REG_1, DIALOG_STYLE_PASSWORD,
-                "Регистрация",
-                "Придумайте пароль (минимум 4 символа):",
-                "Далее",
-                "Назад"
+                "Р РµРіРёСЃС‚СЂР°С†РёСЏ",
+                "РџСЂРёРґСѓРјР°Р№С‚Рµ РїР°СЂРѕР»СЊ (РјРёРЅ. 4 СЃРёРјРІРѕР»Р°):",
+                "Р”Р°Р»РµРµ",
+                "РќР°Р·Р°Рґ"
             );
             return 1;
         }
@@ -458,13 +517,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
     {
         if (!response)
         {
-            ShowPlayerDialog(playerid, DIALOG_AUTH_CHOICE, DIALOG_STYLE_LIST, "Авторизация", "Войти\nРегистрация", "Выбрать", "Выход");
+            ShowPlayerDialog(playerid, DIALOG_AUTH_CHOICE, DIALOG_STYLE_LIST, "РђРІС‚РѕСЂРёР·Р°С†РёСЏ", "Р’С…РѕРґ\nР РµРіРёСЃС‚СЂР°С†РёСЏ", "Р’С‹Р±СЂР°С‚СЊ", "Р’С‹С…РѕРґ");
             return 1;
         }
 
         if (strlen(inputtext) < 1)
         {
-            ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD, "Вход", "Пароль не может быть пустым.\nВведите пароль:", "Войти", "Назад");
+            ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD, "Р’С…РѕРґ", "РџР°СЂРѕР»СЊ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј.\nР’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ:", "Р’РѕР№С‚Рё", "РќР°Р·Р°Рґ");
             return 1;
         }
 
@@ -473,14 +532,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
         if (!AccountExists(name))
         {
-            ShowPlayerDialog(playerid, DIALOG_AUTH_REG_1, DIALOG_STYLE_PASSWORD, "Регистрация", "Аккаунт не найден.\nПридумайте пароль (мин. 4 символа):", "Далее", "Назад");
+            ShowPlayerDialog(playerid, DIALOG_AUTH_REG_1, DIALOG_STYLE_PASSWORD, "Р РµРіРёСЃС‚СЂР°С†РёСЏ", "РђРєРєР°СѓРЅС‚ РЅРµ РЅР°Р№РґРµРЅ.\nРџСЂРёРґСѓРјР°Р№С‚Рµ РїР°СЂРѕР»СЊ (РјРёРЅ. 4 СЃРёРјРІРѕР»Р°):", "Р”Р°Р»РµРµ", "РќР°Р·Р°Рґ");
             return 1;
         }
 
         new dbpass[64];
         if (!GetAccountPass(name, dbpass, sizeof dbpass))
         {
-            SendClientMessage(playerid, -1, "Ошибка базы данных.");
+            SendClientMessage(playerid, -1, "РћС€РёР±РєР° Р±Р°Р·С‹ РґР°РЅРЅС‹С….");
             Kick(playerid);
             return 1;
         }
@@ -490,33 +549,40 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             gAuthAttempts[playerid]++;
             if (gAuthAttempts[playerid] >= AUTH_MAX_ATTEMPTS)
             {
-                SendClientMessage(playerid, -1, "Слишком много попыток.");
+                SendClientMessage(playerid, -1, "РЎР»РёС€РєРѕРј РјРЅРѕРіРѕ РїРѕРїС‹С‚РѕРє.");
                 Kick(playerid);
                 return 1;
             }
 
             ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD,
-                "Вход",
-                "Неверный пароль.\nПопробуйте снова:",
-                "Войти",
-                "Назад"
+                "Р’С…РѕРґ",
+                "РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ.\nР’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ:",
+                "Р’РѕР№С‚Рё",
+                "РќР°Р·Р°Рґ"
             );
             return 1;
         }
 
         if (!LoadAccount(playerid, name))
         {
-            SendClientMessage(playerid, -1, "Ошибка загрузки аккаунта.");
+            SendClientMessage(playerid, -1, "РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё Р°РєРєР°СѓРЅС‚Р°.");
             Kick(playerid);
             return 1;
         }
-        // Загружаем админ-уровень
+        // Р—Р°РіСЂСѓР·РєР° Р°РґРјРёРЅ-СѓСЂРѕРІРЅСЏ
         AdminDB_LoadLevel(playerid);
         PlayerData[playerid][Logged] = true;
         PlayerData[playerid][Loaded] = true;
 
+        if (!Inv_LoadPlayer(playerid))
+        {
+            SendClientMessage(playerid, -1, "[INV] ERROR: cannot load inventory.");
+            Kick(playerid);
+            return 1;
+        }
+
         FinishAuth(playerid);
-        SendClientMessage(playerid, -1, "Вход выполнен. Спавн...");
+        SendClientMessage(playerid, -1, "Р’С‹ СѓСЃРїРµС€РЅРѕ РІРѕС€Р»Рё. РЎРїР°РІРЅ...");
         SpawnPlayer(playerid);
         return 1;
     }
@@ -525,13 +591,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
     {
         if (!response)
         {
-            ShowPlayerDialog(playerid, DIALOG_AUTH_CHOICE, DIALOG_STYLE_LIST, "Авторизация", "Войти\nРегистрация", "Выбрать", "Выход");
+            ShowPlayerDialog(playerid, DIALOG_AUTH_CHOICE, DIALOG_STYLE_LIST, "РђРІС‚РѕСЂРёР·Р°С†РёСЏ", "Р’С…РѕРґ\nР РµРіРёСЃС‚СЂР°С†РёСЏ", "Р’С‹Р±СЂР°С‚СЊ", "Р’С‹С…РѕРґ");
             return 1;
         }
 
         if (strlen(inputtext) < 4)
         {
-            ShowPlayerDialog(playerid, DIALOG_AUTH_REG_1, DIALOG_STYLE_PASSWORD, "Регистрация", "Пароль слишком короткий.\nПридумайте пароль (мин. 4 символа):", "Далее", "Назад");
+            ShowPlayerDialog(playerid, DIALOG_AUTH_REG_1, DIALOG_STYLE_PASSWORD, "Р РµРіРёСЃС‚СЂР°С†РёСЏ", "РџР°СЂРѕР»СЊ СЃР»РёС€РєРѕРј РєРѕСЂРѕС‚РєРёР№.\nРџСЂРёРґСѓРјР°Р№С‚Рµ РїР°СЂРѕР»СЊ (РјРёРЅ. 4 СЃРёРјРІРѕР»Р°):", "Р”Р°Р»РµРµ", "РќР°Р·Р°Рґ");
             return 1;
         }
 
@@ -540,17 +606,17 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
         if (AccountExists(name))
         {
-            ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD, "Вход", "Аккаунт уже существует.\nВведите пароль:", "Войти", "Назад");
+            ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD, "Р’С…РѕРґ", "РђРєРєР°СѓРЅС‚ СѓР¶Рµ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅ.\nР’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ:", "Р’РѕР№С‚Рё", "РќР°Р·Р°Рґ");
             return 1;
         }
 
         format(gRegPass[playerid], sizeof gRegPass[], "%s", inputtext);
 
         ShowPlayerDialog(playerid, DIALOG_AUTH_REG_2, DIALOG_STYLE_PASSWORD,
-            "Регистрация",
-            "Повторите пароль:",
-            "Создать",
-            "Назад"
+            "Р РµРіРёСЃС‚СЂР°С†РёСЏ",
+            "РџРѕРґС‚РІРµСЂРґРёС‚Рµ РїР°СЂРѕР»СЊ:",
+            "Р“РѕС‚РѕРІРѕ",
+            "РќР°Р·Р°Рґ"
         );
         return 1;
     }
@@ -559,7 +625,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
     {
         if (!response)
         {
-            ShowPlayerDialog(playerid, DIALOG_AUTH_REG_1, DIALOG_STYLE_PASSWORD, "Регистрация", "Придумайте пароль (мин. 4 символа):", "Далее", "Назад");
+            ShowPlayerDialog(playerid, DIALOG_AUTH_REG_1, DIALOG_STYLE_PASSWORD, "Р РµРіРёСЃС‚СЂР°С†РёСЏ", "РџСЂРёРґСѓРјР°Р№С‚Рµ РїР°СЂРѕР»СЊ (РјРёРЅ. 4 СЃРёРјРІРѕР»Р°):", "Р”Р°Р»РµРµ", "РќР°Р·Р°Рґ");
             return 1;
         }
 
@@ -567,10 +633,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         {
             gRegPass[playerid][0] = '\0';
             ShowPlayerDialog(playerid, DIALOG_AUTH_REG_1, DIALOG_STYLE_PASSWORD,
-                "Регистрация",
-                "Пароли не совпали.\nВведите пароль заново:",
-                "Далее",
-                "Назад"
+                "Р РµРіРёСЃС‚СЂР°С†РёСЏ",
+                "РџР°СЂРѕР»Рё РЅРµ СЃРѕРІРїР°РґР°СЋС‚.\nР’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ Р·Р°РЅРѕРІРѕ:",
+                "Р”Р°Р»РµРµ",
+                "РќР°Р·Р°Рґ"
             );
             return 1;
         }
@@ -580,25 +646,25 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
         if (AccountExists(name))
         {
-            ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD, "Вход", "Аккаунт уже существует.\nВведите пароль:", "Войти", "Назад");
+            ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD, "Р’С…РѕРґ", "РђРєРєР°СѓРЅС‚ СѓР¶Рµ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅ.\nР’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ:", "Р’РѕР№С‚Рё", "РќР°Р·Р°Рґ");
             return 1;
         }
 
         if (!CreateAccount(name, gRegPass[playerid]))
         {
-            SendClientMessage(playerid, -1, "Ошибка регистрации (БД).");
+            SendClientMessage(playerid, -1, "РћС€РёР±РєР° СЂРµРіРёСЃС‚СЂР°С†РёРё (Р‘Р”).");
             Kick(playerid);
             return 1;
         }
 
         gRegPass[playerid][0] = '\0';
-        SendClientMessage(playerid, -1, "Аккаунт создан. Теперь войдите.");
+        SendClientMessage(playerid, -1, "Р РµРіРёСЃС‚СЂР°С†РёСЏ СѓСЃРїРµС€РЅР°. РўРµРїРµСЂСЊ РІРѕР№РґРёС‚Рµ.");
 
         ShowPlayerDialog(playerid, DIALOG_AUTH_LOGIN, DIALOG_STYLE_PASSWORD,
-            "Вход",
-            "Введите пароль:",
-            "Войти",
-            "Назад"
+            "Р’С…РѕРґ",
+            "Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ:",
+            "Р’РѕР№С‚Рё",
+            "РќР°Р·Р°Рґ"
         );
         return 1;
     }
@@ -608,3 +674,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 // Required to avoid "bad entry point" in some setups
 main() {}
+
+
+
+
+
+
+
+
+
+
+
