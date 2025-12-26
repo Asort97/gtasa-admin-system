@@ -856,7 +856,7 @@ stock Inv_DebugPrintContainer(playerid, kind)
     new cid = gInvContainerId[playerid][kind];
     if (!cid)
     {
-        SendClientMessage(playerid, -1, "[INV] container not available");
+        SendClientMessage(playerid, -1, "[INV] Контейнер недоступен.");
         return 1;
     }
 
@@ -864,9 +864,9 @@ stock Inv_DebugPrintContainer(playerid, kind)
     new header[96];
     switch (kind)
     {
-        case INV_KIND_POCKET: format(header, sizeof header, "[INV] pocket (%d slots)", size);
-        case INV_KIND_EQUIP: format(header, sizeof header, "[INV] equip (%d slots)", size);
-        case INV_KIND_BACKPACK: format(header, sizeof header, "[INV] backpack (%d slots)", size);
+        case INV_KIND_POCKET: format(header, sizeof header, "[INV] Карман (%d слотов)", size);
+        case INV_KIND_EQUIP: format(header, sizeof header, "[INV] Экипировка (%d слотов)", size);
+        case INV_KIND_BACKPACK: format(header, sizeof header, "[INV] Рюкзак (%d слотов)", size);
     }
     SendClientMessage(playerid, -1, header);
 
@@ -876,7 +876,7 @@ stock Inv_DebugPrintContainer(playerid, kind)
         new item_id, amount;
         new data[256];
         if (!Inv_DB_GetSlotItem(cid, slot, item_id, amount, data, sizeof data)) continue;
-        format(msg, sizeof msg, "[INV] slot %d: item=%d amt=%d data=%s", slot, item_id, amount, data);
+        format(msg, sizeof msg, "[INV] Слот %d: предмет=%d кол-во=%d данные=%s", slot, item_id, amount, data);
         SendClientMessage(playerid, -1, msg);
     }
     return 1;
@@ -1033,13 +1033,35 @@ stock bool:Inv_GiveItem(playerid, targetid, from_kind, from_slot, amount)
 }
 
 // -------------------- MVP commands --------------------
+stock Inv_SendHelp(playerid)
+{
+    SendClientMessage(playerid, -1, "-------- Инвентарь: помощь --------");
+    SendClientMessage(playerid, -1, "/inv - показать инвентарь");
+    SendClientMessage(playerid, -1, "/inv help - список команд");
+    SendClientMessage(playerid, -1, "/invadd [id_предмета] [кол-во] [JSON-данные опц.]");
+    SendClientMessage(playerid, -1, "/invmv [контейнер 0/1/2] [слот] [контейнер 0/1/2] [слот]");
+    SendClientMessage(playerid, -1, "/invuse [контейнер 0/1/2] [слот] (если без контейнера, то карман)");
+    SendClientMessage(playerid, -1, "/invdrop [контейнер 0/1/2] [слот] [кол-во опц.] (если без контейнера, то карман)");
+    SendClientMessage(playerid, -1, "/invgive [id_игрока] [контейнер 0/1/2] [слот] [кол-во опц.]");
+    SendClientMessage(playerid, -1, "--------------------");
+    return 1;
+}
+
 stock cmd_inv(playerid, const params[])
 {
-    #pragma unused params
     if (!Inv_IsPlayerReady(playerid)) { SendClientMessage(playerid, -1, "[INV] Доступно после логина."); return 1; }
+    if (params[0])
+    {
+        if (!strcmp(params, "help", true) || !strcmp(params, "?", true))
+        {
+            return Inv_SendHelp(playerid);
+        }
+    }
+    SendClientMessage(playerid, -1, "-------- Инвентарь --------");
     Inv_DebugPrintContainer(playerid, INV_KIND_POCKET);
     Inv_DebugPrintContainer(playerid, INV_KIND_EQUIP);
     if (gInvContainerId[playerid][INV_KIND_BACKPACK]) Inv_DebugPrintContainer(playerid, INV_KIND_BACKPACK);
+    SendClientMessage(playerid, -1, "--------------------");
     return 1;
 }
 
@@ -1053,7 +1075,7 @@ stock cmd_invadd(playerid, const params[])
 
     if (sscanf(params, "iiS()[256]", item_id, amount, data) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /invadd [item_id] [amount] [data JSON опц.]");
+        SendClientMessage(playerid, -1, "Использование: /invadd [id_предмета] [кол-во] [JSON-данные опц.]");
         return 1;
     }
 
@@ -1079,7 +1101,7 @@ stock cmd_invmv(playerid, const params[])
     new from_kind, from_slot, to_kind, to_slot;
     if (sscanf(params, "iiii", from_kind, from_slot, to_kind, to_slot) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /invmv [from_kind 0/1/2] [from_slot] [to_kind 0/1/2] [to_slot]");
+        SendClientMessage(playerid, -1, "Использование: /invmv [контейнер 0/1/2] [слот] [контейнер 0/1/2] [слот]");
         return 1;
     }
     if (!Inv_MoveItemPlayer(playerid, from_kind, from_slot, to_kind, to_slot))
@@ -1087,69 +1109,69 @@ stock cmd_invmv(playerid, const params[])
         SendClientMessage(playerid, -1, "[INV] Нельзя переместить.");
         return 1;
     }
-    SendClientMessage(playerid, -1, "[INV] OK.");
+    SendClientMessage(playerid, -1, "[INV] Готово.");
     return 1;
 }
 
 stock cmd_invuse(playerid, const params[])
 {
-    if (!Inv_IsPlayerReady(playerid)) { SendClientMessage(playerid, -1, "[INV] not available."); return 1; }
+    if (!Inv_IsPlayerReady(playerid)) { SendClientMessage(playerid, -1, "[INV] Доступно после логина."); return 1; }
     new kind, slot;
     if (sscanf(params, "ii", kind, slot) != 0)
     {
         if (sscanf(params, "i", slot) != 0)
         {
-            SendClientMessage(playerid, -1, "Usage: /invuse [kind 0/1/2] [slot]");
+            SendClientMessage(playerid, -1, "Использование: /invuse [контейнер 0/1/2] [слот]");
             return 1;
         }
         kind = INV_KIND_POCKET;
     }
     if (!Inv_IsValidKind(kind))
     {
-        SendClientMessage(playerid, -1, "[INV] invalid container.");
+        SendClientMessage(playerid, -1, "[INV] Неверный контейнер.");
         return 1;
     }
     if (!Inv_UseSlot(playerid, kind, slot))
     {
-        SendClientMessage(playerid, -1, "[INV] cannot use item.");
+        SendClientMessage(playerid, -1, "[INV] Нельзя использовать.");
         return 1;
     }
-    SendClientMessage(playerid, -1, "[INV] used.");
+    SendClientMessage(playerid, -1, "[INV] Использовано.");
     return 1;
 }
 
 stock cmd_invdrop(playerid, const params[])
 {
-    if (!Inv_IsPlayerReady(playerid)) { SendClientMessage(playerid, -1, "[INV] not available."); return 1; }
+    if (!Inv_IsPlayerReady(playerid)) { SendClientMessage(playerid, -1, "[INV] Доступно после логина."); return 1; }
     new kind, slot, amount = 1;
     if (sscanf(params, "iiI(1)", kind, slot, amount) != 0)
     {
         if (sscanf(params, "iI(1)", slot, amount) != 0)
         {
-            SendClientMessage(playerid, -1, "Usage: /invdrop [kind 0/1/2] [slot] [amount opt.]");
+            SendClientMessage(playerid, -1, "Использование: /invdrop [контейнер 0/1/2] [слот] [кол-во опц.]");
             return 1;
         }
         kind = INV_KIND_POCKET;
     }
     if (!Inv_IsValidKind(kind))
     {
-        SendClientMessage(playerid, -1, "[INV] invalid container.");
+        SendClientMessage(playerid, -1, "[INV] Неверный контейнер.");
         return 1;
     }
     new size = Inv_GetKindSize(playerid, kind);
     if (slot < 0 || slot >= size)
     {
-        SendClientMessage(playerid, -1, "[INV] invalid slot.");
+        SendClientMessage(playerid, -1, "[INV] Неверный слот.");
         return 1;
     }
     new cid = gInvContainerId[playerid][kind];
-    if (!cid) { SendClientMessage(playerid, -1, "[INV] cannot drop."); return 1; }
+    if (!cid) { SendClientMessage(playerid, -1, "[INV] Нельзя удалить."); return 1; }
 
     new item_id, cur_amount;
     new data[256];
     if (!Inv_DB_GetSlotItem(cid, slot, item_id, cur_amount, data, sizeof data))
     {
-        SendClientMessage(playerid, -1, "[INV] cannot drop.");
+        SendClientMessage(playerid, -1, "[INV] Нельзя удалить.");
         return 1;
     }
     if (kind == INV_KIND_EQUIP && slot == INV_EQUIP_SLOT_BACKPACK && item_id == ITEM_BACKPACK)
@@ -1157,14 +1179,14 @@ stock cmd_invdrop(playerid, const params[])
         new backpack_cid = gInvContainerId[playerid][INV_KIND_BACKPACK];
         if (backpack_cid && !Inv_DB_IsContainerEmpty(backpack_cid))
         {
-            SendClientMessage(playerid, -1, "[INV] backpack is not empty.");
+            SendClientMessage(playerid, -1, "[INV] Рюкзак не пуст.");
             return 1;
         }
     }
 
     if (!Inv_RemoveItem(cid, slot, amount))
     {
-        SendClientMessage(playerid, -1, "[INV] cannot drop.");
+        SendClientMessage(playerid, -1, "[INV] Нельзя удалить.");
         return 1;
     }
     new bool:stackable, max_stack, bool:unique, equip_slot, bool:usable;
@@ -1177,8 +1199,15 @@ stock cmd_invdrop(playerid, const params[])
         format(logline, sizeof logline, "drop player=%d kind=%d slot=%d amount=%d", playerid, kind, slot, amount);
     Inv_LogLine(logline);
     if (kind == INV_KIND_EQUIP) Inv_RefreshPlayerEquip(playerid);
-    SendClientMessage(playerid, -1, "[INV] dropped.");
+    SendClientMessage(playerid, -1, "[INV] Удалено.");
     return 1;
+}
+
+stock cmd_invhelp(playerid, const params[])
+{
+    #pragma unused params
+    if (!Inv_IsPlayerReady(playerid)) { SendClientMessage(playerid, -1, "[INV] Доступно после логина."); return 1; }
+    return Inv_SendHelp(playerid);
 }
 
 stock cmd_invgive(playerid, const params[])
@@ -1187,7 +1216,7 @@ stock cmd_invgive(playerid, const params[])
     new targetid, kind, slot, amount = 1;
     if (sscanf(params, "iiiI(1)", targetid, kind, slot, amount) != 0)
     {
-        SendClientMessage(playerid, -1, "Использование: /invgive [playerid] [kind 0/1/2] [slot] [amount опц.]");
+        SendClientMessage(playerid, -1, "Использование: /invgive [id_игрока] [контейнер 0/1/2] [слот] [кол-во опц.]");
         return 1;
     }
     if (!IsPlayerConnected(targetid))
@@ -1203,7 +1232,3 @@ stock cmd_invgive(playerid, const params[])
     SendClientMessage(playerid, -1, "[INV] Передано.");
     return 1;
 }
-
-
-
-

@@ -550,6 +550,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
     if (!strcmp(cmd, "a", true)) return cmd_a(playerid, params);
     if (!strcmp(cmd, "admin", true)) return cmd_admin(playerid, params);
     if (!strcmp(cmd, "inv", true)) return cmd_inv(playerid, params);
+    if (!strcmp(cmd, "invhelp", true)) return cmd_invhelp(playerid, params);
     if (!strcmp(cmd, "invadd", true)) return cmd_invadd(playerid, params);
     if (!strcmp(cmd, "invmv", true)) return cmd_invmv(playerid, params);
     if (!strcmp(cmd, "invuse", true)) return cmd_invuse(playerid, params);

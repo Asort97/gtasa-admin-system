@@ -576,7 +576,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
         if (!Inv_LoadPlayer(playerid))
         {
-            SendClientMessage(playerid, -1, "[INV] ERROR: cannot load inventory.");
+            SendClientMessage(playerid, -1, "[INV] Ошибка загрузки инвентаря.");
             Kick(playerid);
             return 1;
         }
