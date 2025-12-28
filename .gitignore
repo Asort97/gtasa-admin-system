@@ -41,3 +41,4 @@ node_modules/
 !*.md
 scriptfiles/server.db
 scriptfiles/admin_log.txt
+log.txt
