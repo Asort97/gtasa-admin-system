@@ -8,6 +8,19 @@
 #define INV_CONTAINER_TYPE_EQUIP    "player_equip"
 #define INV_CONTAINER_TYPE_BACKPACK "player_backpack"
 
+#define DIALOG_INV_MAIN           (2000)
+#define DIALOG_INV_ACTION         (2001)
+#define DIALOG_INV_MOVE_CONTAINER (2002)
+#define DIALOG_INV_MOVE_SLOT      (2003)
+#define DIALOG_INV_DROP_AMOUNT    (2004)
+#define DIALOG_INV_GIVE_LIST      (2005)
+#define DIALOG_INV_GIVE_ID        (2006)
+#define DIALOG_INV_GIVE_AMOUNT    (2007)
+#define DIALOG_INV_INFO           (2008)
+
+#define INV_LIST_MAX              (128)
+#define INV_OPEN_KEY              (KEY_CTRL_BACK)
+
 #define INV_KIND_POCKET   (0)
 #define INV_KIND_EQUIP    (1)
 #define INV_KIND_BACKPACK (2)
@@ -31,11 +44,145 @@ new bool:gInvLoaded[MAX_PLAYERS];
 new gInvContainerId[MAX_PLAYERS][3];
 new gInvContainerSize[MAX_PLAYERS][3];
 new bool:gInvOpLock[MAX_PLAYERS];
+new gInvListKind[MAX_PLAYERS][INV_LIST_MAX];
+new gInvListSlot[MAX_PLAYERS][INV_LIST_MAX];
+new gInvListCount[MAX_PLAYERS];
+new gInvSelKind[MAX_PLAYERS];
+new gInvSelSlot[MAX_PLAYERS];
+new gInvMoveTargetKind[MAX_PLAYERS];
+new gInvGiveList[MAX_PLAYERS][MAX_PLAYERS];
+new gInvGiveCount[MAX_PLAYERS];
+new gInvGiveTarget[MAX_PLAYERS];
+
+forward bool:Inv_IsPlayerReady(playerid);
+forward bool:Inv_IsValidKind(kind);
+forward Inv_GetKindSize(playerid, kind);
+forward bool:Inv_DB_EnsureContainer(owner_id, const type[], size, &container_id);
+forward bool:Inv_DB_GetSlotItem(container_id, slot, &item_id, &amount, data[], data_size);
+forward bool:Inv_FindBestSlot(container_id, container_size, item_id, const data[], &out_slot);
+forward bool:Inv_MoveAuto(playerid, from_kind, from_slot);
+forward bool:Inv_MoveItemPlayer(playerid, from_kind, from_slot, to_kind, to_slot);
+forward bool:Inv_UseSlot(playerid, kind, slot);
+forward bool:Inv_GiveItem(playerid, targetid, from_kind, from_slot, amount);
 
 stock Inv_LogLine(const text[])
 {
     printf("[INV] %s", text);
     return 1;
+}
+
+stock Inv_GetItemName(item_id, out[], out_size)
+{
+    switch (item_id)
+    {
+        case ITEM_WATER: format(out, out_size, "Вода");
+        case ITEM_FOOD: format(out, out_size, "Еда");
+        case ITEM_MEDKIT: format(out, out_size, "Аптечка");
+        case ITEM_ARMOR: format(out, out_size, "Броня");
+        case ITEM_BACKPACK: format(out, out_size, "Рюкзак");
+        case ITEM_PLATE: format(out, out_size, "Номер");
+        case ITEM_BLUEPRINT: format(out, out_size, "Чертёж");
+        default: format(out, out_size, "Неизвестно");
+    }
+    return 1;
+}
+
+stock Inv_ListAddItem(playerid, kind, slot, list[], list_size, const text[])
+{
+    if (gInvListCount[playerid] >= INV_LIST_MAX) return 0;
+    if (list[0]) strcat(list, "\n", list_size);
+    strcat(list, text, list_size);
+
+    gInvListKind[playerid][gInvListCount[playerid]] = kind;
+    gInvListSlot[playerid][gInvListCount[playerid]] = slot;
+    gInvListCount[playerid]++;
+    return 1;
+}
+
+stock bool:Inv_FindBestSlot(container_id, container_size, item_id, const data[], &out_slot)
+{
+    out_slot = -1;
+
+    new bool:stackable, max_stack, bool:unique, equip_slot, bool:usable;
+    Inv_ItemDef(item_id, stackable, max_stack, unique, equip_slot, usable);
+
+    if (stackable)
+    {
+        for (new slot = 0; slot < container_size; slot++)
+        {
+            new sid, samount;
+            new sdata[256];
+            if (!Inv_DB_GetSlotItem(container_id, slot, sid, samount, sdata, sizeof sdata)) continue;
+            if (sid != item_id) continue;
+            if (strcmp(sdata, data, false) != 0) continue;
+            if (samount >= max_stack) continue;
+            out_slot = slot;
+            return true;
+        }
+    }
+
+    for (new slot = 0; slot < container_size; slot++)
+    {
+        new sid, samount;
+        new tmp[4];
+        if (Inv_DB_GetSlotItem(container_id, slot, sid, samount, tmp, sizeof tmp)) continue;
+        out_slot = slot;
+        return true;
+    }
+    return false;
+}
+
+stock bool:Inv_MoveAuto(playerid, from_kind, from_slot)
+{
+    if (!Inv_IsPlayerReady(playerid)) return false;
+    if (!Inv_IsValidKind(from_kind)) return false;
+
+    new from_cid = gInvContainerId[playerid][from_kind];
+    if (!from_cid) return false;
+
+    new item_id, amount;
+    new data[256];
+    if (!Inv_DB_GetSlotItem(from_cid, from_slot, item_id, amount, data, sizeof data)) return false;
+
+    new target_kind = -1;
+    new target_slot = -1;
+
+    if (from_kind == INV_KIND_POCKET)
+    {
+        if (item_id == ITEM_ARMOR)
+        {
+            target_kind = INV_KIND_EQUIP;
+            target_slot = INV_EQUIP_SLOT_ARMOR;
+        }
+        else if (item_id == ITEM_BACKPACK)
+        {
+            target_kind = INV_KIND_EQUIP;
+            target_slot = INV_EQUIP_SLOT_BACKPACK;
+        }
+        else if (gInvContainerId[playerid][INV_KIND_BACKPACK])
+        {
+            target_kind = INV_KIND_BACKPACK;
+        }
+    }
+    else if (from_kind == INV_KIND_BACKPACK || from_kind == INV_KIND_EQUIP)
+    {
+        target_kind = INV_KIND_POCKET;
+    }
+
+    if (target_kind == -1) return false;
+
+    if (target_kind == INV_KIND_EQUIP)
+    {
+        return Inv_MoveItemPlayer(playerid, from_kind, from_slot, target_kind, target_slot);
+    }
+
+    new target_cid = gInvContainerId[playerid][target_kind];
+    if (!target_cid) return false;
+    new target_size = Inv_GetKindSize(playerid, target_kind);
+    if (target_size <= 0) return false;
+
+    if (!Inv_FindBestSlot(target_cid, target_size, item_id, data, target_slot)) return false;
+    return Inv_MoveItemPlayer(playerid, from_kind, from_slot, target_kind, target_slot);
 }
 
 stock bool:Inv_Lock(playerid)
@@ -650,6 +797,12 @@ stock Inv_UnloadPlayer(playerid)
     gInvContainerId[playerid][INV_KIND_EQUIP] = 0;
     gInvContainerId[playerid][INV_KIND_BACKPACK] = 0;
     gInvContainerSize[playerid][INV_KIND_BACKPACK] = 0;
+    gInvListCount[playerid] = 0;
+    gInvSelKind[playerid] = -1;
+    gInvSelSlot[playerid] = -1;
+    gInvMoveTargetKind[playerid] = -1;
+    gInvGiveCount[playerid] = 0;
+    gInvGiveTarget[playerid] = INVALID_PLAYER_ID;
     return 1;
 }
 
@@ -882,6 +1035,222 @@ stock Inv_DebugPrintContainer(playerid, kind)
     return 1;
 }
 
+stock Inv_OpenMainDialog(playerid)
+{
+    if (!Inv_IsPlayerReady(playerid)) return 0;
+
+    gInvListCount[playerid] = 0;
+
+    new list[2048];
+    list[0] = '\0';
+
+    Inv_ListAddItem(playerid, -1, -1, list, sizeof list, "== Карман ==");
+    for (new slot = 0; slot < INV_POCKET_SIZE; slot++)
+    {
+        new item_id, amount;
+        new data[256];
+        if (Inv_DB_GetSlotItem(gInvContainerId[playerid][INV_KIND_POCKET], slot, item_id, amount, data, sizeof data))
+        {
+            new name[32];
+            Inv_GetItemName(item_id, name, sizeof name);
+            format(data, sizeof data, "Слот %d: %s x%d", slot, name, amount);
+            Inv_ListAddItem(playerid, INV_KIND_POCKET, slot, list, sizeof list, data);
+        }
+        else
+        {
+            new line[64];
+            format(line, sizeof line, "Слот %d: пусто", slot);
+            Inv_ListAddItem(playerid, INV_KIND_POCKET, slot, list, sizeof list, line);
+        }
+    }
+
+    Inv_ListAddItem(playerid, -1, -1, list, sizeof list, "== Экипировка ==");
+    for (new slot = 0; slot < INV_EQUIP_SIZE; slot++)
+    {
+        new item_id, amount;
+        new data[256];
+        new slot_name[16];
+        if (slot == INV_EQUIP_SLOT_ARMOR) format(slot_name, sizeof slot_name, "Броня");
+        else format(slot_name, sizeof slot_name, "Рюкзак");
+
+        if (Inv_DB_GetSlotItem(gInvContainerId[playerid][INV_KIND_EQUIP], slot, item_id, amount, data, sizeof data))
+        {
+            new name[32];
+            Inv_GetItemName(item_id, name, sizeof name);
+            format(data, sizeof data, "Слот %d (%s): %s x%d", slot, slot_name, name, amount);
+            Inv_ListAddItem(playerid, INV_KIND_EQUIP, slot, list, sizeof list, data);
+        }
+        else
+        {
+            new line[80];
+            format(line, sizeof line, "Слот %d (%s): пусто", slot, slot_name);
+            Inv_ListAddItem(playerid, INV_KIND_EQUIP, slot, list, sizeof list, line);
+        }
+    }
+
+    if (gInvContainerId[playerid][INV_KIND_BACKPACK])
+    {
+        new size = gInvContainerSize[playerid][INV_KIND_BACKPACK];
+        Inv_ListAddItem(playerid, -1, -1, list, sizeof list, "== Рюкзак ==");
+        for (new slot = 0; slot < size; slot++)
+        {
+            new item_id, amount;
+            new data[256];
+            if (Inv_DB_GetSlotItem(gInvContainerId[playerid][INV_KIND_BACKPACK], slot, item_id, amount, data, sizeof data))
+            {
+                new name[32];
+                Inv_GetItemName(item_id, name, sizeof name);
+                format(data, sizeof data, "Слот %d: %s x%d", slot, name, amount);
+                Inv_ListAddItem(playerid, INV_KIND_BACKPACK, slot, list, sizeof list, data);
+            }
+            else
+            {
+                new line[64];
+                format(line, sizeof line, "Слот %d: пусто", slot);
+                Inv_ListAddItem(playerid, INV_KIND_BACKPACK, slot, list, sizeof list, line);
+            }
+        }
+    }
+
+    ShowPlayerDialog(playerid, DIALOG_INV_MAIN, DIALOG_STYLE_LIST, "Инвентарь", list, "Выбрать", "Закрыть");
+    return 1;
+}
+
+stock Inv_OpenActionDialog(playerid)
+{
+    new list[256];
+    format(list, sizeof list, "Использовать\nПереместить (авто)\nПереместить в...\nВыбросить\nПередать\nИнфо\nНазад");
+    ShowPlayerDialog(playerid, DIALOG_INV_ACTION, DIALOG_STYLE_LIST, "Действия", list, "Выбрать", "Назад");
+    return 1;
+}
+
+stock Inv_OpenMoveContainerDialog(playerid)
+{
+    new list[256];
+    format(list, sizeof list, "Карман\nЭкипировка\nРюкзак");
+    ShowPlayerDialog(playerid, DIALOG_INV_MOVE_CONTAINER, DIALOG_STYLE_LIST, "Куда переместить", list, "Выбрать", "Назад");
+    return 1;
+}
+
+stock Inv_OpenMoveSlotDialog(playerid, kind)
+{
+    new list[512];
+    list[0] = '\0';
+
+    if (kind == INV_KIND_POCKET)
+    {
+        for (new slot = 0; slot < INV_POCKET_SIZE; slot++)
+        {
+            new line[64];
+            format(line, sizeof line, "Слот %d", slot);
+            if (list[0]) strcat(list, "\n", sizeof list);
+            strcat(list, line, sizeof list);
+        }
+    }
+    else if (kind == INV_KIND_EQUIP)
+    {
+        format(list, sizeof list, "Слот 0 (Броня)\nСлот 1 (Рюкзак)");
+    }
+    else if (kind == INV_KIND_BACKPACK)
+    {
+        new size = gInvContainerSize[playerid][INV_KIND_BACKPACK];
+        for (new slot = 0; slot < size; slot++)
+        {
+            new line[64];
+            format(line, sizeof line, "Слот %d", slot);
+            if (list[0]) strcat(list, "\n", sizeof list);
+            strcat(list, line, sizeof list);
+        }
+    }
+
+    ShowPlayerDialog(playerid, DIALOG_INV_MOVE_SLOT, DIALOG_STYLE_LIST, "Выбор слота", list, "Выбрать", "Назад");
+    return 1;
+}
+
+stock Inv_OpenDropAmountDialog(playerid)
+{
+    ShowPlayerDialog(playerid, DIALOG_INV_DROP_AMOUNT, DIALOG_STYLE_INPUT, "Удаление", "Введите количество:", "Ок", "Назад");
+    return 1;
+}
+
+stock Inv_BuildGiveList(playerid)
+{
+    gInvGiveCount[playerid] = 0;
+    new list[512];
+    list[0] = '\0';
+
+    new Float:x1, Float:y1, Float:z1;
+    GetPlayerPos(playerid, x1, y1, z1);
+
+    for (new i = 0; i < MAX_PLAYERS; i++)
+    {
+        if (!IsPlayerConnected(i)) continue;
+        if (i == playerid) continue;
+
+        new Float:x2, Float:y2, Float:z2;
+        GetPlayerPos(i, x2, y2, z2);
+        new Float:dx = x1 - x2;
+        new Float:dy = y1 - y2;
+        new Float:dz = z1 - z2;
+        if ((dx * dx + dy * dy + dz * dz) > 9.0) continue;
+
+        new name[MAX_PLAYER_NAME];
+        GetPlayerName(i, name, sizeof name);
+        if (list[0]) strcat(list, "\n", sizeof list);
+        strcat(list, name, sizeof list);
+        gInvGiveList[playerid][gInvGiveCount[playerid]] = i;
+        gInvGiveCount[playerid]++;
+        if (gInvGiveCount[playerid] >= MAX_PLAYERS) break;
+    }
+
+    if (list[0]) strcat(list, "\n", sizeof list);
+    strcat(list, "Ввести ID", sizeof list);
+    gInvGiveList[playerid][gInvGiveCount[playerid]] = INVALID_PLAYER_ID;
+    gInvGiveCount[playerid]++;
+
+    ShowPlayerDialog(playerid, DIALOG_INV_GIVE_LIST, DIALOG_STYLE_LIST, "Кому передать", list, "Выбрать", "Назад");
+    return 1;
+}
+
+stock Inv_OpenGiveIdDialog(playerid)
+{
+    ShowPlayerDialog(playerid, DIALOG_INV_GIVE_ID, DIALOG_STYLE_INPUT, "Передача", "Введите ID игрока:", "Ок", "Назад");
+    return 1;
+}
+
+stock Inv_OpenGiveAmountDialog(playerid)
+{
+    ShowPlayerDialog(playerid, DIALOG_INV_GIVE_AMOUNT, DIALOG_STYLE_INPUT, "Передача", "Введите количество:", "Ок", "Назад");
+    return 1;
+}
+
+stock Inv_OpenInfoDialog(playerid)
+{
+    new kind = gInvSelKind[playerid];
+    new slot = gInvSelSlot[playerid];
+
+    new cid = gInvContainerId[playerid][kind];
+    if (!cid) return 0;
+
+    new item_id, amount;
+    new data[256];
+    if (!Inv_DB_GetSlotItem(cid, slot, item_id, amount, data, sizeof data)) return 0;
+
+    new name[32];
+    Inv_GetItemName(item_id, name, sizeof name);
+
+    new kind_name[16];
+    if (kind == INV_KIND_POCKET) format(kind_name, sizeof kind_name, "Карман");
+    else if (kind == INV_KIND_EQUIP) format(kind_name, sizeof kind_name, "Экипировка");
+    else format(kind_name, sizeof kind_name, "Рюкзак");
+
+    new msg[256];
+    format(msg, sizeof msg, "Предмет: %s\nID: %d\nКол-во: %d\nКонтейнер: %s\nСлот: %d\nДанные: %s",
+        name, item_id, amount, kind_name, slot, data);
+    ShowPlayerDialog(playerid, DIALOG_INV_INFO, DIALOG_STYLE_MSGBOX, "Информация", msg, "Ок", "");
+    return 1;
+}
+
 stock bool:Inv_DB_AddItemToContainerTx(container_id, container_size, item_id, &amount, const data[])
 {
     new bool:stackable, max_stack, bool:unique, equip_slot, bool:usable;
@@ -1047,6 +1416,218 @@ stock Inv_SendHelp(playerid)
     return 1;
 }
 
+stock bool:Inv_OnDialogResponse(playerid, dialogid, response, listitem, const inputtext[])
+{
+    if (!Inv_IsPlayerReady(playerid)) return false;
+
+    if (dialogid == DIALOG_INV_MAIN)
+    {
+        if (!response) return true;
+        if (listitem < 0 || listitem >= gInvListCount[playerid]) return true;
+
+        new kind = gInvListKind[playerid][listitem];
+        new slot = gInvListSlot[playerid][listitem];
+        if (kind < 0)
+        {
+            Inv_OpenMainDialog(playerid);
+            return true;
+        }
+
+        new cid = gInvContainerId[playerid][kind];
+        if (!cid)
+        {
+            SendClientMessage(playerid, -1, "[INV] Контейнер недоступен.");
+            return true;
+        }
+
+        new item_id, amount;
+        new data[256];
+        if (!Inv_DB_GetSlotItem(cid, slot, item_id, amount, data, sizeof data))
+        {
+            SendClientMessage(playerid, -1, "[INV] Слот пуст.");
+            return true;
+        }
+
+        gInvSelKind[playerid] = kind;
+        gInvSelSlot[playerid] = slot;
+        Inv_OpenActionDialog(playerid);
+        return true;
+    }
+
+    if (dialogid == DIALOG_INV_ACTION)
+    {
+        if (!response)
+        {
+            Inv_OpenMainDialog(playerid);
+            return true;
+        }
+
+        switch (listitem)
+        {
+            case 0:
+            {
+                if (!Inv_UseSlot(playerid, gInvSelKind[playerid], gInvSelSlot[playerid]))
+                    SendClientMessage(playerid, -1, "[INV] Нельзя использовать.");
+                Inv_OpenMainDialog(playerid);
+            }
+            case 1:
+            {
+                if (!Inv_MoveAuto(playerid, gInvSelKind[playerid], gInvSelSlot[playerid]))
+                    SendClientMessage(playerid, -1, "[INV] Нельзя переместить.");
+                Inv_OpenMainDialog(playerid);
+            }
+            case 2:
+            {
+                Inv_OpenMoveContainerDialog(playerid);
+            }
+            case 3:
+            {
+                Inv_OpenDropAmountDialog(playerid);
+            }
+            case 4:
+            {
+                Inv_BuildGiveList(playerid);
+            }
+            case 5:
+            {
+                Inv_OpenInfoDialog(playerid);
+            }
+            default:
+            {
+                Inv_OpenMainDialog(playerid);
+            }
+        }
+        return true;
+    }
+
+    if (dialogid == DIALOG_INV_MOVE_CONTAINER)
+    {
+        if (!response) { Inv_OpenActionDialog(playerid); return true; }
+
+        new target_kind = listitem;
+        if (target_kind == INV_KIND_BACKPACK && !gInvContainerId[playerid][INV_KIND_BACKPACK])
+        {
+            SendClientMessage(playerid, -1, "[INV] Рюкзак недоступен.");
+            Inv_OpenActionDialog(playerid);
+            return true;
+        }
+        gInvMoveTargetKind[playerid] = target_kind;
+        Inv_OpenMoveSlotDialog(playerid, target_kind);
+        return true;
+    }
+
+    if (dialogid == DIALOG_INV_MOVE_SLOT)
+    {
+        if (!response) { Inv_OpenActionDialog(playerid); return true; }
+
+        new target_kind = gInvMoveTargetKind[playerid];
+        if (!Inv_IsValidKind(target_kind)) { Inv_OpenActionDialog(playerid); return true; }
+
+        if (!Inv_MoveItemPlayer(playerid, gInvSelKind[playerid], gInvSelSlot[playerid], target_kind, listitem))
+        {
+            SendClientMessage(playerid, -1, "[INV] Нельзя переместить.");
+        }
+        Inv_OpenMainDialog(playerid);
+        return true;
+    }
+
+    if (dialogid == DIALOG_INV_DROP_AMOUNT)
+    {
+        if (!response) { Inv_OpenActionDialog(playerid); return true; }
+
+        new amount = 1;
+        if (inputtext[0]) amount = strval(inputtext);
+        if (amount <= 0) amount = 1;
+
+        new kind = gInvSelKind[playerid];
+        new slot = gInvSelSlot[playerid];
+        new cid = gInvContainerId[playerid][kind];
+        if (!cid) { SendClientMessage(playerid, -1, "[INV] Нельзя удалить."); return true; }
+
+        new item_id, cur_amount;
+        new data[256];
+        if (!Inv_DB_GetSlotItem(cid, slot, item_id, cur_amount, data, sizeof data))
+        {
+            SendClientMessage(playerid, -1, "[INV] Нельзя удалить.");
+            return true;
+        }
+        if (kind == INV_KIND_EQUIP && slot == INV_EQUIP_SLOT_BACKPACK && item_id == ITEM_BACKPACK)
+        {
+            new backpack_cid = gInvContainerId[playerid][INV_KIND_BACKPACK];
+            if (backpack_cid && !Inv_DB_IsContainerEmpty(backpack_cid))
+            {
+                SendClientMessage(playerid, -1, "[INV] Рюкзак не пуст.");
+                return true;
+            }
+        }
+
+        if (!Inv_RemoveItem(cid, slot, amount))
+        {
+            SendClientMessage(playerid, -1, "[INV] Нельзя удалить.");
+            return true;
+        }
+        if (kind == INV_KIND_EQUIP) Inv_RefreshPlayerEquip(playerid);
+        SendClientMessage(playerid, -1, "[INV] Удалено.");
+        Inv_OpenMainDialog(playerid);
+        return true;
+    }
+
+    if (dialogid == DIALOG_INV_GIVE_LIST)
+    {
+        if (!response) { Inv_OpenActionDialog(playerid); return true; }
+
+        if (listitem < 0 || listitem >= gInvGiveCount[playerid]) { Inv_OpenActionDialog(playerid); return true; }
+        new targetid = gInvGiveList[playerid][listitem];
+        if (targetid == INVALID_PLAYER_ID)
+        {
+            Inv_OpenGiveIdDialog(playerid);
+            return true;
+        }
+        gInvGiveTarget[playerid] = targetid;
+        Inv_OpenGiveAmountDialog(playerid);
+        return true;
+    }
+
+    if (dialogid == DIALOG_INV_GIVE_ID)
+    {
+        if (!response) { Inv_OpenActionDialog(playerid); return true; }
+        new targetid = strval(inputtext);
+        if (!IsPlayerConnected(targetid))
+        {
+            SendClientMessage(playerid, -1, "[INV] Игрок не найден.");
+            return true;
+        }
+        gInvGiveTarget[playerid] = targetid;
+        Inv_OpenGiveAmountDialog(playerid);
+        return true;
+    }
+
+    if (dialogid == DIALOG_INV_GIVE_AMOUNT)
+    {
+        if (!response) { Inv_OpenActionDialog(playerid); return true; }
+        new amount = 1;
+        if (inputtext[0]) amount = strval(inputtext);
+        if (amount <= 0) amount = 1;
+
+        if (!Inv_GiveItem(playerid, gInvGiveTarget[playerid], gInvSelKind[playerid], gInvSelSlot[playerid], amount))
+        {
+            SendClientMessage(playerid, -1, "[INV] Нельзя передать (дистанция/место/ошибка).");
+            return true;
+        }
+        SendClientMessage(playerid, -1, "[INV] Передано.");
+        Inv_OpenMainDialog(playerid);
+        return true;
+    }
+
+    if (dialogid == DIALOG_INV_INFO)
+    {
+        Inv_OpenActionDialog(playerid);
+        return true;
+    }
+
+    return false;
+}
+
 stock cmd_inv(playerid, const params[])
 {
     if (!Inv_IsPlayerReady(playerid)) { SendClientMessage(playerid, -1, "[INV] Доступно после логина."); return 1; }
@@ -1057,12 +1638,7 @@ stock cmd_inv(playerid, const params[])
             return Inv_SendHelp(playerid);
         }
     }
-    SendClientMessage(playerid, -1, "-------- Инвентарь --------");
-    Inv_DebugPrintContainer(playerid, INV_KIND_POCKET);
-    Inv_DebugPrintContainer(playerid, INV_KIND_EQUIP);
-    if (gInvContainerId[playerid][INV_KIND_BACKPACK]) Inv_DebugPrintContainer(playerid, INV_KIND_BACKPACK);
-    SendClientMessage(playerid, -1, "--------------------");
-    return 1;
+    return Inv_OpenMainDialog(playerid);
 }
 
 stock cmd_invadd(playerid, const params[])

@@ -461,6 +461,15 @@ public OnPlayerSpawn(playerid)
     return 1;
 }
 
+public OnPlayerKeyStateChange(playerid, KEY:newkeys, KEY:oldkeys)
+{
+    if ((newkeys & INV_OPEN_KEY) && !(oldkeys & INV_OPEN_KEY))
+    {
+        Inv_OpenMainDialog(playerid);
+    }
+    return 1;
+}
+
 public FixInput(playerid)
 {
     if (!IsPlayerConnected(playerid)) return 0;
@@ -486,6 +495,8 @@ public OnPlayerText(playerid, text[])
 public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 {
     if (!IsPlayerConnected(playerid)) return 0;
+
+    if (Inv_OnDialogResponse(playerid, dialogid, response, listitem, inputtext)) return 1;
 
     if (dialogid == DIALOG_AUTH_CHOICE)
     {
